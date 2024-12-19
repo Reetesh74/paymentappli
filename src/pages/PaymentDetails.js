@@ -4,6 +4,9 @@ import ProgressBar from "../components/ProgressBar/ProgressBar";
 import "../styles/PaymentDetails.css";
 import Year from "../components/PaymentDetails/Year";
 import Month from "../components/PaymentDetails/Month";
+import { Modal } from "@mui/material";
+import ModalContent from "../components/PaymentDetails/ModalContent";
+
 import {
   getClassData,
   getCourseData,
@@ -408,7 +411,7 @@ const PaymentDetails = () => {
                 <input
                   type="text"
                   name="finalPrice"
-                  value={formValues.finalPrice || totalAmount.max - couponValue}
+                  value={formValues.finalPrice}
                   readOnly
                   style={{
                     color: "green",
@@ -448,45 +451,19 @@ const PaymentDetails = () => {
       </div>
 
       {showModal && (
-        <div className="modal">
-          <div className="modal-container">
-            <button
-              className="close-popup"
-              style={{ textAlign: "right" }}
-              onClick={handleClose}
-            >
-              <img
-                src="/icons/cross-icon.svg"
-                alt="Enrollment Icon"
-                className="enrollmentIcon"
-              />
-            </button>
-            <div className="modal-content">
-              <h3>Confirm Your Details</h3>
-              <ul>
-                <li>
-                  <span>Plan Type:</span> <span>{formValues.planType}</span>
-                </li>
-                <li>
-                  <span>Validity:</span> <span>{formValues.period}</span>
-                </li>
-                <li>
-                  <span>Class:</span> <span>{formValues.class}</span>
-                </li>
-                <li>
-                  <span>Board:</span> <span>{formValues.board}</span>
-                </li>
-                <li>
-                  <span>State:</span>
-                  <span>{formValues.state}</span>{" "}
-                </li>
-              </ul>
-              <button className="popup" onClick={handleConfirm}>
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
+        <Modal
+          open={showModal}
+          onClose={handleClose}
+          aria-labelledby="modal-title"
+          aria-describedby="modal-description"
+        >
+          <ModalContent
+            formValues={formValues}
+            subjects={subjects}
+            onConfirm={handleConfirm}
+            onClose={handleClose}
+          />
+        </Modal>
       )}
     </div>
   );
