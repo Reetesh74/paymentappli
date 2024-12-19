@@ -1,0 +1,82 @@
+.payment-container {
+  border-radius: 8px;
+  width: 43vw;
+}
+
+.header h2 {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.payment-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.payment-table-head {
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.payment-table th,
+.payment-table td {
+  text-align: center;
+  padding: 2vh 0.5vw;
+}
+
+.payment-table th {
+  color: #1E293B;
+}
+
+.status-badge {
+  padding: 5px 10px;
+  border-radius: 12px;
+  color: #fff;
+  font-weight: bold;
+}
+
+.status-paid {
+  color: #15803D;
+  background: #DCFCE7;
+
+}
+
+.status-pending {
+  background: #FEF3C7;
+  color: #B45309;
+}
+
+.status-failed {
+  color: #B91C1C;
+  background: #FECACA;
+}
+
+.paymant-table {
+  border-bottom: 1px solid #E2E8F0;
+  padding: 11px 24px 11px 16px;
+}
+
+.copy-icon {
+  margin-left: 5px;
+  cursor: pointer;
+}
+
+.button-container-payment {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+  background: #a8abad1a;
+}
+
+.createPaymentableButton {
+  background-color: #8E198F;
+  color: #fff;
+  padding: 5px 11px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  float: right;
+  margin: 19px 15px 38px 0px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}

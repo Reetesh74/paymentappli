@@ -1,0 +1,178 @@
+.payment-verification-container {
+	margin: 10px 151px 0px 146px;
+	padding: 11px 20px 200px 20px;
+	border: 1px solid #E2E8F0;
+	background: #FFFFFF;
+}
+
+.button-section-verification {
+	display: flex;
+	justify-content: space-between;
+	padding: 10px 24px;
+	margin: 0px 151px 0px 146px;
+	border-radius: 0 0 8px 8px;
+	background: #f8fafc;
+	position: sticky;
+	bottom: 0;
+	z-index: 10;
+}
+
+.subtitle {
+	font-size: 0.9em;
+	color: #666;
+}
+
+.stepper {
+	display: flex;
+	justify-content: space-between;
+	margin: 20px 0;
+}
+
+
+.payment-section {
+	margin-top: 20px;
+	border-radius: 8px;
+	gap: 20px;
+}
+
+.payment-entry {
+	display: flex;
+	gap: 10px;
+	margin-bottom: 8px;
+	flex-direction: column;
+	border: 1px solid #ccc;
+	padding-bottom: 26px;
+	border-radius: #94A3B8;
+	border-radius: 8px;
+}
+
+.method-id-payment {
+	display: flex;
+	flex-direction: row;
+	margin-left: 20px;
+	margin-right: 40px;
+	justify-content: center;
+	align-items: center;
+}
+
+.payment {
+	font-family: Roboto;
+	font-size: 20px;
+	font-weight: 600;
+	text-align: left;
+	text-underline-position: from-font;
+	text-decoration-skip-ink: none;
+	display: flex;
+	justify-content: space-between;
+	border-bottom: 1px solid rgb(226, 232, 240);
+	padding: 10px 8px;
+	border-radius: 8px 8px 0px 0px;
+}
+
+.payment-tag {
+	margin-left: 20px;
+}
+
+.payment-entry select,
+.payment-entry input {
+	width: 100%;
+	padding: 8px;
+	border: 1px solid #94A3B8;
+	border-radius: 8px;
+}
+
+.add-payment-button {
+	background-color: #cb60ab;
+	color: #fff;
+	padding: 8px 12px;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+.add-payment-button:hover {
+	background-color: #0056b3;
+}
+
+.button-id {
+	background: #8E198F;
+	padding: 6px 16px 6px 16px;
+	border-radius: 8px;
+	border: none;
+	display: flex;
+	align-items: center;
+}
+
+.close-button {
+	background: none;
+	border: none;
+	color: red;
+	font-size: 1.2em;
+	cursor: pointer;
+	padding: 0 5px;
+}
+
+.close-button:hover {
+	color: darkred;
+}
+
+.button-section {
+	display: flex;
+	justify-content: space-between;
+	margin-top: 20px;
+}
+
+.back-button,
+.next-button {
+	padding: 10px 32px;
+	font-size: 1em;
+	border-radius: 8px;
+	cursor: pointer;
+	border: 1px solid #94A3B8;
+
+}
+
+.back-button:hover,
+.next-button:hover {
+	background-color: #f0f0f0;
+}
+
+.select-placeholder {
+	color: #64748B;
+}
+
+.select-placeholder option[value=""] {
+	color: #a0a0a0;
+}
+
+
+.loader-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(255, 255, 255, 0.8);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 9999;
+  }
+  
+  .loader {
+	border: 8px solid #f3f3f3;
+	border-top: 8px solid #3498db;
+	border-radius: 50%;
+	width: 60px;
+	height: 60px;
+	animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+	0% {
+	  transform: rotate(0deg);
+	}
+	100% {
+	  transform: rotate(360deg);
+	}
+  }

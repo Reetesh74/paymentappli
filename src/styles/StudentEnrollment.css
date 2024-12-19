@@ -1,0 +1,110 @@
+.container-enrollment {
+
+  font-family: Arial, sans-serif;
+  width: 43vw;
+}
+
+.header {
+  background-color: #E4EDFA;
+  padding: 16px;
+  border-radius: 8px 8px 0 0;
+  font-size: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.payment-header {
+  background-color: #FBE8FF;
+  padding: 16px;
+  border-radius: 8px 8px 0 0;
+  font-size: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.form {
+  padding: 20px;
+  background: #f0fdf4;
+}
+
+.label {
+  color: #64748B;
+}
+
+.input::placeholder {
+  color: #64748B;
+}
+
+.input {
+  color: black;
+}
+
+.input option[disabled] {
+  color: gray;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  width: 48%;
+}
+
+.full-width-field {
+  width: 100%;
+}
+
+.input {
+  padding: 11px 16px;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+  margin-top: 8px;
+  margin-bottom: 17px;
+  font-size: 14px;
+  background: #F8FAFC;
+}
+
+.enrollment-text {
+  font-family: Roboto;
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 28px;
+  text-align: left;
+  text-underline-position: from-font;
+  text-decoration-skip-ink: none;
+}
+
+.button {
+  padding: 9px 19px 9px 18px;
+  border-radius: 8px;
+  background-color: #184574;
+  color: white;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+.button-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.button-payment {
+  padding: 9px 19px 9px 18px;
+  border-radius: 8px;
+  background-color: #8E198F;
+  color: white;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 20px;
+}

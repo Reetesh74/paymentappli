@@ -1,0 +1,162 @@
+.container {
+  padding: 199px 128px;
+  font-family: Arial, sans-serif;
+}
+
+.title {
+  font-size: 24px;
+  margin-bottom: 5px;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: grey;
+  margin-bottom: 20px;
+}
+
+.boldText {
+  font-weight: bold;
+}
+
+.buttonContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-top: 121px;
+}
+
+.createPaymentBox,
+.studentEnrollmentBox {
+  border-radius: 8px;
+  flex: 1 1;
+  border: 1px solid #E2E8F0;
+}
+
+.createPaymentBox {
+  border-radius: 8px;
+  flex: 1 1;
+  border: 1px solid #E2E8F0;
+}
+
+.studentEnrollmentBox {
+  margin-left: 10px;
+}
+
+.boxTitle {
+  display: block;
+  font-size: 16px;
+  color: #333;
+  background: #FBE8FF;
+  padding: 10px 16px 10px 16px;
+  border-radius: 8px 8px 0px 0px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.boxTitle-enrollment {
+  display: block;
+  font-size: 16px;
+  color: #333;
+  background: #E4EDFA;
+  padding: 10px 16px 10px 16px;
+  border-radius: 8px 8px 0px 0px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.createPaymentButton {
+  background-color: #8E198F;
+  color: #fff;
+  padding: 5px 11px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  float: right;
+  margin: 0px 10px 14px 0px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.createPaymentButton-table {
+  background-color: #8E198F;
+  color: #fff;
+  padding: 6px 11px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  float: right;
+  margin: 0px 10px 10px 0px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 19px;
+}
+
+.enrollmentButton {
+  background-color: #184574;
+  color: #fff;
+  padding: 6px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  float: right;
+  margin: 0px 10px 14px 0px;
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  margin-top: 10px;
+}
+
+.enrollmentIcon {
+  width: 20px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.tableHeader {
+  text-align: left;
+  padding: 10px;
+  font-size: 14px;
+  background-color: #f8f9fa;
+  color: #333;
+  border-bottom: 1px solid #ddd;
+}
+
+.tableRow {
+  background-color: #fff;
+  border-bottom: 1px solid #ddd;
+}
+
+.tableCell {
+  padding: 10px;
+  font-size: 14px;
+  color: #333;
+}
+
+.upgradeButton {
+  color: #ff6600;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.icon,
+.menuIcon {
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.draft-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
