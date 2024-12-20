@@ -6,6 +6,8 @@ import Year from "../components/PaymentDetails/Year";
 import Month from "../components/PaymentDetails/Month";
 import { Modal } from "@mui/material";
 import ModalContent from "../components/PaymentDetails/ModalContent";
+import CustomSelect from "../components/app/CustomSelect";
+import Input from "../components/app/Input";
 
 import {
   getClassData,
@@ -15,8 +17,8 @@ import {
   createOrUpdatePlan,
   mapPlanEnrollment,
   getBoardData,
+  getPlansByCourseId,
 } from "../utils/api";
-import CustomSelect from "../components/app/CustomSelect";
 
 const PaymentDetails = () => {
   const navigate = useNavigate();
@@ -24,28 +26,32 @@ const PaymentDetails = () => {
 
   const location = useLocation();
   const { enrollmentId, mobile } = location.state || {};
-
   const [classes, setClasses] = useState([]);
   const [states, setStates] = useState([]);
   const [courses, setCourses] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [boards, setBoards] = useState([]);
-
+  const [price, setPrice] = useState(null);
+  const [courseid, setCourseid] = useState(null);
+  const [minAmountPlan, setMinAmountPlan] = useState(0);
+  const [maxAmountPlan, setMaxAmountPlan] = useState(0);
   const [formValues, setFormValues] = useState({
+    amount: 0,
     name: "",
-    planType: "",
+    courseType: "",
     period: "",
     currency: "INR",
-    interval: "",
+    interval: 0,
     board: "",
     state: "",
     city: "",
     standards: [],
     productIds: [],
     coupon: "",
-    expiryDate: null,
+    expiryDate: "",
   });
 
+  console.log("final price :");
   // calculation part---------------------------------
   const [totalAmount, setTotalAmount] = useState({ min: 0, max: 0 });
   const calculateTotalAmount = (selectedIds) => {
@@ -63,7 +69,7 @@ const PaymentDetails = () => {
       0
     );
 
-    setTotalAmount({ min, max });
+    setTotalAmount({ min: minAmountPlan + min, max: maxAmountPlan + max });
   };
 
   useEffect(() => {
@@ -80,9 +86,9 @@ const PaymentDetails = () => {
 
         setStates(Object.keys(stateData || {}));
         setCourses(
-          courseData.courses.map((course, index) => ({
-            courseName: course.courseName || `Unnamed Course ${index}`,
-            key: course._id || `course-${index}`,
+          courseData.courses.map((course) => ({
+            label: course.courseName || "Unnamed Course",
+            value: course.courseId,
           }))
         );
         setSubjects(subjectData || []);
@@ -107,7 +113,9 @@ const PaymentDetails = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [couponValue, setCouponValue] = useState(0);
-  const handleChange = (event) => {
+  const [periodPlan, setPeriodPlan] = useState(null);
+  console.log("course: ", courses);
+  const handleChange = async (event) => {
     const { name, value } = event.target;
 
     setFormValues((prev) => {
@@ -151,6 +159,51 @@ const PaymentDetails = () => {
         [name]: value,
       };
     });
+
+    if (name === "courseType") {
+      setCourseid(value);
+    }
+
+    if (name === "period") {
+      console.log("valuegggggggggggg: ", value);
+      setPeriodPlan(value);
+      fetchPlans(courseid);
+    }
+  };
+
+  useEffect(() => {
+    if (courseid && periodPlan) {
+      console.log("fffffffffffffffff ", periodPlan);
+      fetchPlans(courseid);
+    }
+  }, [periodPlan, courseid]);
+
+  const fetchPlans = async (courseId) => {
+    try {
+      // debugger;
+      const plans = await getPlansByCourseId(courseId);
+      const yearlyPlans = plans.filter((plan) => plan.period === "yearly");
+
+      console.log("periodPlan ", periodPlan);
+      if (yearlyPlans.length > 0 && periodPlan === "yearly") {
+        const maxAmount = Math.max(
+          ...yearlyPlans.map((plan) => plan.maxAmount || 0)
+        );
+        const minAmount = Math.min(
+          ...yearlyPlans.map((plan) => plan.minAmount || 0)
+        );
+        setTotalAmount({ min: minAmount, max: maxAmount });
+        setMinAmountPlan(minAmount);
+        setMaxAmountPlan(maxAmount);
+      } else {
+        setTotalAmount({ min: 0, max: 0 });
+        setMinAmountPlan(0);
+        setMaxAmountPlan(0);
+      }
+    } catch (error) {
+      console.error("Error fetching plans:", error);
+      setTotalAmount({ min: 0, max: 0 });
+    }
   };
 
   const handleNext = async () => {
@@ -166,25 +219,27 @@ const PaymentDetails = () => {
 
     try {
       const requestData = {
+        amount: Number(price),
         period: formValues.period,
-        planType: formValues.planType,
+        courseType: formValues.courseType,
         subjects: formValues.subjects,
         board: formValues.board,
         state: formValues.state,
-        interval: formValues.interval,
+        interval: intervalData,
         coupon: formValues.coupon,
         standards: formValues.standards,
         productIds: formValues.productIds,
         currency: formValues.currency,
         expiryDate: formValues.expiryDate,
+        name: "PLAN-SUB-3",
       };
 
       const rawResponse = await createOrUpdatePlan(requestData);
 
       if (rawResponse.ok) {
-        const { _id, planType } = rawResponse.data;
+        const { _id, courseType } = rawResponse.data;
         const requestMap = {
-          planType: formValues.planType,
+          courseType: formValues.courseType,
           enrollmentId,
           plan: _id,
         };
@@ -202,22 +257,29 @@ const PaymentDetails = () => {
   };
 
   // -----------------------------------for year-------------------------------------------------
-  const [yearInterval, setYearIntervalData] = useState(null);
+  const [intervalData, setIntervalData] = useState(null);
   const [monthInterval, setMOnthIntervalData] = useState(null);
   const handleYearChange = (data) => {
-    setYearIntervalData(data);
+    setIntervalData(data);
     console.log("Updated Year Data:", data);
   };
   const handleMonthChange = (data) => {
-    setMOnthIntervalData(data);
+    setIntervalData(data);
     console.log("Updated month Data:", data);
   };
+
   const handleRemoveSubject = (subjectId) => {
     // Remove the subjectId from the productIds array
-    setFormValues((prevValues) => ({
-      ...prevValues,
-      productIds: prevValues.productIds.filter((id) => id !== subjectId),
-    }));
+    setFormValues((prevValues) => {
+      const updatedProductIds = prevValues.productIds.filter(
+        (id) => id !== subjectId
+      );
+      calculateTotalAmount(updatedProductIds); // Recalculate with updated IDs
+      return {
+        ...prevValues,
+        productIds: updatedProductIds,
+      };
+    });
   };
 
   return (
@@ -241,16 +303,18 @@ const PaymentDetails = () => {
           <div className="form-control">
             <CustomSelect
               label="Select Course"
-              name="planType"
-              value={formValues.planType}
-              options={courses.map((course, index) => ({
-                value: course.courseName || `Unnamed Course ${index}`, // Use unique value
-                label: course.courseName || `Unnamed Course ${index}`,
-                key: course.key || `course-${index}`, // Use unique key
-              }))}
+              name="courseType"
+              value={formValues.courseType}
+              options={courses}
               onChange={handleChange}
               isDropdownOpen={isDropdownOpen}
               setIsDropdownOpen={setIsDropdownOpen}
+              renderValue={(selected) => {
+                const selectedOption = courses.find(
+                  (course) => course.value === selected
+                );
+                return selectedOption ? selectedOption.label : "Select Course";
+              }}
             />
           </div>
 
@@ -301,9 +365,9 @@ const PaymentDetails = () => {
               name="productIds"
               value={formValues.productIds}
               options={subjects.map((subject, index) => ({
-                value: subject._id || `subject-${index}`, // Ensure `value` is unique
+                value: subject._id || `subject-${index}`,
                 label: subject.name || `Unnamed Subject ${index}`,
-                key: subject._id || `key-subject-${index}`, // Use unique key
+                key: subject._id || `key-subject-${index}`,
               }))}
               onChange={handleChange}
               isDropdownOpen={isDropdownOpen}
@@ -343,9 +407,9 @@ const PaymentDetails = () => {
               name="board"
               value={formValues.board}
               options={boards.map((board, index) => ({
-                value: board.boardName || `Unnamed Course ${index}`, // Use unique value
+                value: board.boardName || `Unnamed Course ${index}`,
                 label: board.boardName || `Unnamed Course ${index}`,
-                key: board.key || `course-${index}`, // Use unique key
+                key: board.key || `course-${index}`,
               }))}
               onChange={handleChange}
               isDropdownOpen={isDropdownOpen}
@@ -361,7 +425,7 @@ const PaymentDetails = () => {
               options={states.map((state, index) => ({
                 value: state || `State ${index}`,
                 label: state || `State ${index}`,
-                key: state || `state-${index}`, // Use unique key
+                key: state || `state-${index}`,
               }))}
               onChange={handleChange}
               isDropdownOpen={isDropdownOpen}
@@ -408,15 +472,10 @@ const PaymentDetails = () => {
             <div className="price-section-control">
               <div className="form-control">
                 <label>Final Price</label>
-                <input
-                  type="text"
-                  name="finalPrice"
-                  value={formValues.finalPrice}
-                  readOnly
-                  style={{
-                    color: "green",
-                    fontWeight: "bold",
-                  }}
+                <Input
+                  value={price}
+                  onChange={setPrice}
+                  placeholder="Fix Amount"
                 />
               </div>
               <div>

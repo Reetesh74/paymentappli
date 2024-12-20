@@ -168,3 +168,15 @@ export const getYearData = async () => {
   const response = await fetchWithAuth(endpoint);
   return handleResponse(response, "Failed to fetch Subscription data");
 };
+
+export const getPlansByCourseId = async (courseId) => {
+  const endpoint = `/plan/read/get-all-plans?courseType=${courseId}`;
+  const response = await fetchWithAuth(endpoint);
+  return handleResponse(response, "Failed to fetch plan data");
+};
+
+export const getSubjectById = async (courseId) => {
+  const endpoint = `/course/read/get?courseId=${courseId}`;
+  const response = await fetchWithAuth(endpoint);
+  return handleResponse(response, "Failed to fetch Subscription data");
+};
