@@ -21,6 +21,7 @@ const Year = ({ onYearChange }) => {
             label: item.name,
             isActive: item.isActive,
           }));
+        console.log("option:====e ", options);
         setYearData(options);
       } catch (error) {
         console.error("Error fetching year data:", error);

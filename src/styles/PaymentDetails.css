@@ -294,9 +294,21 @@ select {
   border: none;
   margin-left: 5px;
   cursor: pointer;
+  margin-top: 9px;
 }
 
 .subject-item button img {
   width: 16px;
   height: 16px;
+}
+
+.subjectshow {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.subject-control {
+  display: flex;
+  align-items: flex-end;
 }

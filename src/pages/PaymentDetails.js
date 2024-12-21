@@ -13,12 +13,13 @@ import {
   getClassData,
   getCourseData,
   getStateData,
-  getSubjectData,
   createOrUpdatePlan,
   mapPlanEnrollment,
   getBoardData,
   getPlansByCourseId,
+  getSubjectById,
 } from "../utils/api";
+import { color, height } from "@mui/system";
 
 const PaymentDetails = () => {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ const PaymentDetails = () => {
   const [courses, setCourses] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [boards, setBoards] = useState([]);
-  const [price, setPrice] = useState(null);
+  const [price, setPrice] = useState("");
   const [courseid, setCourseid] = useState(null);
   const [minAmountPlan, setMinAmountPlan] = useState(0);
   const [maxAmountPlan, setMaxAmountPlan] = useState(0);
@@ -51,7 +52,6 @@ const PaymentDetails = () => {
     expiryDate: "",
   });
 
-  console.log("final price :");
   // calculation part---------------------------------
   const [totalAmount, setTotalAmount] = useState({ min: 0, max: 0 });
   const calculateTotalAmount = (selectedIds) => {
@@ -75,59 +75,94 @@ const PaymentDetails = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [stateData, courseData, subjectData, classData, boardData] =
-          await Promise.all([
-            getStateData("IN"),
-            getCourseData(),
-            getSubjectData(),
-            getClassData(),
-            getBoardData(),
-          ]);
+        if (courseid) {
+          const subjectDataById = await getSubjectById(courseid);
 
-        setStates(Object.keys(stateData || {}));
-        setCourses(
-          courseData.courses.map((course) => ({
-            label: course.courseName || "Unnamed Course",
-            value: course.courseId,
-          }))
-        );
-        setSubjects(subjectData || []);
-        setClasses(
-          classData.map((classItem) => ({
-            name: classItem.name,
-            id: classItem._id,
-          }))
-        );
-        setBoards(
-          boardData.boards.map((board, index) => ({
-            boardName: board.boardName || `Unnamed Course ${index}`,
-            key: board._id || `course-${index}`,
-          }))
-        );
+          if (subjectDataById && Array.isArray(subjectDataById.subjects)) {
+            const normalizedSubjects = subjectDataById.subjects.map(
+              (subject) => ({
+                _id: subject._id || Date.now(),
+                name: subject.name || "Unnamed Subject",
+                minAmount: subject.minAmount,
+                maxAmount: subject.maxAmount,
+              })
+            );
+            setSubjects(normalizedSubjects);
+          } else {
+            console.error("Subject data not found or malformed response");
+          }
+        } else {
+          const [stateData, courseData, classData, boardData] =
+            await Promise.all([
+              getStateData("IN"),
+              getCourseData(),
+              getClassData(),
+              getBoardData(),
+            ]);
+
+          const normalizedSubjects = [
+            {
+              _id: "default",
+              name: "First select course",
+              minAmount: null,
+              maxAmount: null,
+            },
+          ];
+          setSubjects(normalizedSubjects);
+          setStates(Object.keys(stateData || {}));
+          setCourses(
+            courseData.courses.map((course) => ({
+              label: course.courseName || "Unnamed Course",
+              value: course.courseId,
+            }))
+          );
+          setClasses(
+            classData.map((classItem) => ({
+              name: classItem.name,
+              id: classItem._id,
+            }))
+          );
+          setBoards(
+            boardData.boards.map((board, index) => ({
+              boardName: board.boardName || `Unnamed Course ${index}`,
+              key: board._id || `course-${index}`,
+            }))
+          );
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
     fetchData();
-  }, []);
+  }, [courseid]);
 
   const [showModal, setShowModal] = useState(false);
   const [couponValue, setCouponValue] = useState(0);
   const [periodPlan, setPeriodPlan] = useState(null);
+  const [intervalData, setIntervalData] = useState(null);
+  const handleYearChange = (data) => {
+    setIntervalData(data);
+    console.log("Updated Year Data:", data);
+  };
   console.log("course: ", courses);
   const handleChange = async (event) => {
     const { name, value } = event.target;
 
     setFormValues((prev) => {
       if (name === "coupon") {
-        const parsedCoupon = parseInt(value, 10) || 0;
-        const discountedPrice = totalAmount.max - parsedCoupon;
+        // const parsedCoupon = parseInt(value, 10) || 0;
 
-        setCouponValue(parsedCoupon);
+        setCouponValue(value);
         return {
           ...prev,
           [name]: value,
-          finalPrice: discountedPrice > 0 ? discountedPrice : 0,
+        };
+      }
+      if (name === "amount") {
+        setPrice(value);
+        return {
+          ...prev,
+          [name]: value,
         };
       }
 
@@ -165,26 +200,29 @@ const PaymentDetails = () => {
     }
 
     if (name === "period") {
-      console.log("valuegggggggggggg: ", value);
       setPeriodPlan(value);
-      fetchPlans(courseid);
+      // fetchPlans(courseid);
     }
   };
 
+  console.log("intervalData==!= ", intervalData);
   useEffect(() => {
-    if (courseid && periodPlan) {
-      console.log("fffffffffffffffff ", periodPlan);
-      fetchPlans(courseid);
+    if (courseid && periodPlan && intervalData) {
+      fetchPlans(courseid, intervalData);
     }
-  }, [periodPlan, courseid]);
+  }, [periodPlan, courseid, intervalData]);
 
-  const fetchPlans = async (courseId) => {
+  const fetchPlans = async (courseId, intervalidss) => {
     try {
       // debugger;
+      console.log("intervalidss", intervalidss);
       const plans = await getPlansByCourseId(courseId);
-      const yearlyPlans = plans.filter((plan) => plan.period === "yearly");
+      console.log("plans===== ", plans);
+      const yearlyPlans = plans.filter(
+        (plan) => plan.period === "yearly" && plan.interval === intervalidss
+      );
 
-      console.log("periodPlan ", periodPlan);
+      console.log("yearlyPlans== ", yearlyPlans);
       if (yearlyPlans.length > 0 && periodPlan === "yearly") {
         const maxAmount = Math.max(
           ...yearlyPlans.map((plan) => plan.maxAmount || 0)
@@ -257,24 +295,18 @@ const PaymentDetails = () => {
   };
 
   // -----------------------------------for year-------------------------------------------------
-  const [intervalData, setIntervalData] = useState(null);
-  const [monthInterval, setMOnthIntervalData] = useState(null);
-  const handleYearChange = (data) => {
-    setIntervalData(data);
-    console.log("Updated Year Data:", data);
-  };
+
   const handleMonthChange = (data) => {
     setIntervalData(data);
     console.log("Updated month Data:", data);
   };
 
   const handleRemoveSubject = (subjectId) => {
-    // Remove the subjectId from the productIds array
     setFormValues((prevValues) => {
       const updatedProductIds = prevValues.productIds.filter(
         (id) => id !== subjectId
       );
-      calculateTotalAmount(updatedProductIds); // Recalculate with updated IDs
+      calculateTotalAmount(updatedProductIds);
       return {
         ...prevValues,
         productIds: updatedProductIds,
@@ -294,11 +326,39 @@ const PaymentDetails = () => {
         <div className="progressbar">
           <ProgressBar />
         </div>
-        {formValues.period === "yearly" ? (
-          <Year onYearChange={handleYearChange} />
-        ) : (
-          <Month onMonthChange={handleMonthChange} />
-        )}
+        <div className="subjectshow">
+          {formValues.period === "yearly" ? (
+            <Year onYearChange={handleYearChange} />
+          ) : (
+            <Month onMonthChange={handleMonthChange} />
+          )}
+          <div className="subject-control">
+            <div className="selected-subjects">
+              {formValues.productIds.length > 0 && (
+                <div>
+                  <ul className="subject-list">
+                    {formValues.productIds.map((productId) => {
+                      const subject = subjects.find(
+                        (subject) => subject._id === productId
+                      );
+                      return subject ? (
+                        <li key={subject._id} className="subject-item">
+                          {subject.name}
+                          <button
+                            onClick={() => handleRemoveSubject(productId)}
+                          >
+                            <img src="/icons/cross-icon.svg" alt="Remove" />
+                          </button>
+                        </li>
+                      ) : null;
+                    })}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
         <div className="row1">
           <div className="form-control">
             <CustomSelect
@@ -334,32 +394,6 @@ const PaymentDetails = () => {
           </div>
 
           <div className="form-control">
-            <div className="form-control">
-              <div className="selected-subjects">
-                {formValues.productIds.length > 0 && (
-                  <div>
-                    <ul className="subject-list">
-                      {formValues.productIds.map((productId) => {
-                        const subject = subjects.find(
-                          (subject) => subject._id === productId
-                        );
-                        return subject ? (
-                          <li key={subject._id} className="subject-item">
-                            {subject.name}
-                            <button
-                              onClick={() => handleRemoveSubject(productId)}
-                            >
-                              <img src="/icons/cross-icon.svg" alt="Remove" />
-                            </button>
-                          </li>
-                        ) : null;
-                      })}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            </div>
-
             <CustomSelect
               label="Subjects"
               name="productIds"
@@ -437,15 +471,18 @@ const PaymentDetails = () => {
         <div className="coupon-finalprice-section">
           <div className="form-control">
             <label>Coupon</label>
-            <input
-              type="text"
-              name="coupon"
+            <Input
               value={formValues.coupon}
+              name="coupon"
               onChange={handleChange}
-              style={{
-                width: "22vh",
-                borderRadius: "8px 0 0 8px",
-                borderRight: "none",
+              placeholder="Enter Coupon Code"
+              rootStyle={{
+                borderRadius: "8px",
+                width: "13vw",
+              }}
+              inputStyle={{
+                height: "18px",
+                color: "#64748B",
               }}
             />
             <button
@@ -474,17 +511,25 @@ const PaymentDetails = () => {
                 <label>Final Price</label>
                 <Input
                   value={price}
-                  onChange={setPrice}
+                  onChange={handleChange}
+                  name="amount"
                   placeholder="Fix Amount"
+                  rootStyle={{
+                    borderRadius: "8px",
+                  }}
+                  inputStyle={{
+                    height: "18px",
+                    color: "#64748B",
+                  }}
                 />
               </div>
               <div>
                 <span className="min" style={{ color: "green" }}>
-                  min {totalAmount.min}
+                  Min {totalAmount.min}
                 </span>
-                <span>-</span>
+                <span>&nbsp;-&nbsp;</span>
                 <span className="max" style={{ color: "red" }}>
-                  max {totalAmount.max}
+                  Max {totalAmount.max}
                 </span>
               </div>
             </div>
