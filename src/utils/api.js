@@ -180,3 +180,9 @@ export const getSubjectById = async (courseId) => {
   const response = await fetchWithAuth(endpoint);
   return handleResponse(response, "Failed to fetch Subscription data");
 };
+
+export const getEnrollStudentTableData = async () => {
+  const endpoint = `/enrollment/read/get-all`;
+  const response = await fetchWithAuth(endpoint);
+  return handleResponse(response, "Failed to fetch subject data");
+};

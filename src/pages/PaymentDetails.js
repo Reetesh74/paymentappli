@@ -344,37 +344,23 @@ const PaymentDetails = () => {
         <div className="progressbar">
           <ProgressBar />
         </div>
-        <div className="subjectshow">
-          {formValues.period === "yearly" ? (
-            <Year onYearChange={handleYearChange} />
-          ) : (
-            <Month onMonthChange={handleMonthChange} />
-          )}
-          <SelectedSubjects
-            subjects={subjects}
-            productIds={formValues.productIds}
-            onRemoveSubject={handleRemoveSubject}
-            period={formValues.period}
+        <div className="form-control">
+          <CustomSelect
+            label="Select Course"
+            name="courseType"
+            value={formValues.courseType}
+            options={courses}
+            onChange={handleChange}
+            renderValue={(selected) => {
+              const selectedOption = courses.find(
+                (course) => course.value === selected
+              );
+              return selectedOption ? selectedOption.label : "Select Course";
+            }}
           />
         </div>
 
         <div className="row1">
-          <div className="form-control">
-            <CustomSelect
-              label="Select Course"
-              name="courseType"
-              value={formValues.courseType}
-              options={courses}
-              onChange={handleChange}
-              renderValue={(selected) => {
-                const selectedOption = courses.find(
-                  (course) => course.value === selected
-                );
-                return selectedOption ? selectedOption.label : "Select Course";
-              }}
-            />
-          </div>
-
           <div className="form-control">
             <CustomSelect
               label="Tenure"
@@ -387,7 +373,48 @@ const PaymentDetails = () => {
               onChange={handleChange}
             />
           </div>
+          <div className="subjectshow">
+            {formValues.period === "yearly" ? (
+              <Year onYearChange={handleYearChange} />
+            ) : (
+              <Month onMonthChange={handleMonthChange} />
+            )}
+            <SelectedSubjects
+              subjects={subjects}
+              productIds={formValues.productIds}
+              onRemoveSubject={handleRemoveSubject}
+              period={formValues.period}
+            />
+          </div>
+          <div className="form-control">
+            <CustomSelect
+              label="Class"
+              name="class"
+              value={formValues.class}
+              options={classes.map((classItem, index) => ({
+                value: classItem.name || `Class ${index}`,
+                label: classItem.name || `Class ${index}`,
+                key: classItem.id || `class-${index}`,
+              }))}
+              onChange={handleChange}
+            />
+          </div>
+        </div>
 
+        <div className="row2">
+          <div className="form-control">
+            <CustomSelect
+              label="Select Board"
+              name="board"
+              value={formValues.board}
+              options={boards.map((board, index) => ({
+                value: board.boardName || `Unnamed Course ${index}`,
+                label: board.boardName || `Unnamed Course ${index}`,
+                key: board.key || `course-${index}`,
+              }))}
+              onChange={handleChange}
+            />
+          </div>
           <div className="form-control">
             <CustomSelect
               label="Subjects"
@@ -412,37 +439,9 @@ const PaymentDetails = () => {
                 return selectedLabels.join(", ");
               }}
             />
+          </div>
+          <div>
             <SkillDropdown onProductIdsChange={handleProductIdsChange} />
-          </div>
-        </div>
-
-        <div className="row2">
-          <div className="form-control">
-            <CustomSelect
-              label="Class"
-              name="class"
-              value={formValues.class}
-              options={classes.map((classItem, index) => ({
-                value: classItem.name || `Class ${index}`,
-                label: classItem.name || `Class ${index}`,
-                key: classItem.id || `class-${index}`,
-              }))}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="form-control">
-            <CustomSelect
-              label="Select Board"
-              name="board"
-              value={formValues.board}
-              options={boards.map((board, index) => ({
-                value: board.boardName || `Unnamed Course ${index}`,
-                label: board.boardName || `Unnamed Course ${index}`,
-                key: board.key || `course-${index}`,
-              }))}
-              onChange={handleChange}
-            />
           </div>
         </div>
 

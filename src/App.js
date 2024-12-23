@@ -6,6 +6,7 @@ import StudentEnrollment from "./pages/StudentEnrollment";
 import PaymentTable from "./pages/PaymentTable";
 import HomePage from "./pages/HomePage";
 import SkillDropdown from "./components/PaymentDetails/SkillDropdown";
+import EnrollMentTable from "./pages/EnrollStudentTable"
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/student-enrollemnt" element={<StudentEnrollment />} />
         <Route path="/payment-details" element={<PaymentTable />} />
         <Route path="/skill" element={<SkillDropdown />} />
+        <Route path="/enroll-ment" element={<EnrollMentTable />} />
       </Routes>
     </Router>
   );
