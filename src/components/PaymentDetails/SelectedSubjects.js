@@ -6,12 +6,10 @@ const SelectedSubjects = ({
   onRemoveSubject,
   period,
 }) => {
-  console.log("subjects== ", subjects);
-  console.log("periodsssss =", period);
+ 
   if (period === "yearly") {
     productIds = subjects.map((subject) => subject._id);
   }
-  console.log("after productIds== ", productIds);
   return (
     <div className="subject-control">
       <div className="selected-subjects">

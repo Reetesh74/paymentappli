@@ -14,7 +14,6 @@ import SelectedSubjects from "../components/PaymentDetails/SelectedSubjects";
 import {
   getClassData,
   getCourseData,
-  getStateData,
   createOrUpdatePlan,
   mapPlanEnrollment,
   getBoardData,
@@ -25,12 +24,10 @@ import { color, height } from "@mui/system";
 
 const PaymentDetails = () => {
   const navigate = useNavigate();
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const location = useLocation();
   const { enrollmentId, mobile } = location.state || {};
   const [classes, setClasses] = useState([]);
-  const [states, setStates] = useState([]);
   const [courses, setCourses] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [boards, setBoards] = useState([]);
@@ -60,14 +57,14 @@ const PaymentDetails = () => {
   });
 
   const handleProductIdsChange = (newProductIds) => {
-    console.log("handleProductIdsChange called with:", newProductIds);
+    // console.log("handleProductIdsChange called with:", newProductIds);
     setProductIdsSkill(newProductIds);
   };
 
   useEffect(() => {
     const ids = productIdsSkill.map((subject) => subject._id);
     calculateTotalAmount(ids);
-    console.log("productIdsSkill777777777777", ids);
+    // console.log("productIdsSkill777777777777", ids);
   }, [productIdsSkill]);
 
   // calculation part---------------------------------
@@ -78,9 +75,9 @@ const PaymentDetails = () => {
     const filteredData = subjects.filter((item) =>
       selectedIds.includes(item._id)
     );
-    console.log("filteredData==== ", filteredData);
+    // console.log("filteredData==== ", filteredData);
     const newsubjectarray = filteredData.concat(productIdsSkill);
-    console.log("qqqqqqqqqqqqqqqqqqqq ", newsubjectarray);
+    // console.log("qqqqqqqqqqqqqqqqqqqq ", newsubjectarray);
     const total = newsubjectarray.reduce(
       (acc, item) => {
         acc.min += item.minAmount || 0;
@@ -117,13 +114,11 @@ const PaymentDetails = () => {
             console.error("Subject data not found or malformed response");
           }
         } else {
-          const [stateData, courseData, classData, boardData] =
-            await Promise.all([
-              getStateData("IN"),
-              getCourseData(),
-              getClassData(),
-              getBoardData(),
-            ]);
+          const [courseData, classData, boardData] = await Promise.all([
+            getCourseData(),
+            getClassData(),
+            getBoardData(),
+          ]);
 
           const normalizedSubjects = [
             {
@@ -134,7 +129,6 @@ const PaymentDetails = () => {
             },
           ];
           setSubjects(normalizedSubjects);
-          setStates(Object.keys(stateData || {}));
           setCourses(
             courseData.courses.map((course) => ({
               label: course.courseName || "Unnamed Course",
@@ -162,15 +156,16 @@ const PaymentDetails = () => {
   }, [courseid]);
 
   const handleYearChange = (data) => {
+    console.log("handleYearChange called with data:", data);
     setIntervalData(data);
   };
+
   const handleChange = async (event) => {
+    if (!event || !event.target) return;
     const { name, value } = event.target;
 
     setFormValues((prev) => {
       if (name === "coupon") {
-        // const parsedCoupon = parseInt(value, 10) || 0;
-
         setCouponValue(value);
         return {
           ...prev,
@@ -237,7 +232,7 @@ const PaymentDetails = () => {
         (plan) => plan.period === "yearly" && plan.interval === intervalidss
       );
 
-      console.log("yearlyPlans== ", yearlyPlans);
+      // console.log("yearlyPlans== ", yearlyPlans);
       if (yearlyPlans.length > 0 && periodPlan === "yearly") {
         const maxAmount = Math.max(
           ...yearlyPlans.map((plan) => plan.maxAmount || 0)
@@ -318,16 +313,16 @@ const PaymentDetails = () => {
 
   const handleMonthChange = (data) => {
     setIntervalData(data);
-    console.log("Updated month Data:", data);
+    // console.log("Updated month Data:", data);
   };
 
   const handleRemoveSubject = (subjectId) => {
     setFormValues((prevValues) => {
-      console.log("prevValues", prevValues);
+      // console.log("prevValues", prevValues);
       const updatedProductIds = prevValues.productIds.filter(
         (id) => id !== subjectId
       );
-      console.log("updatedProductIds", updatedProductIds);
+      // console.log("updatedProductIds", updatedProductIds);
       calculateTotalAmount(updatedProductIds);
 
       return {
@@ -371,8 +366,6 @@ const PaymentDetails = () => {
               value={formValues.courseType}
               options={courses}
               onChange={handleChange}
-              isDropdownOpen={isDropdownOpen}
-              setIsDropdownOpen={setIsDropdownOpen}
               renderValue={(selected) => {
                 const selectedOption = courses.find(
                   (course) => course.value === selected
@@ -392,8 +385,6 @@ const PaymentDetails = () => {
                 { value: "yearly", label: "Yearly" },
               ]}
               onChange={handleChange}
-              isDropdownOpen={isDropdownOpen}
-              setIsDropdownOpen={setIsDropdownOpen}
             />
           </div>
 
@@ -408,8 +399,6 @@ const PaymentDetails = () => {
                 key: subject._id || `key-subject-${index}`,
               }))}
               onChange={handleChange}
-              isDropdownOpen={isDropdownOpen}
-              setIsDropdownOpen={setIsDropdownOpen}
               multiple
               renderValue={(selected) => {
                 if (!selected || selected.length === 0) {
@@ -422,7 +411,6 @@ const PaymentDetails = () => {
                   .map((subject) => subject.name);
                 return selectedLabels.join(", ");
               }}
-              disabled={formValues.period === "yearly"}
             />
             <SkillDropdown onProductIdsChange={handleProductIdsChange} />
           </div>
@@ -440,8 +428,6 @@ const PaymentDetails = () => {
                 key: classItem.id || `class-${index}`,
               }))}
               onChange={handleChange}
-              isDropdownOpen={isDropdownOpen}
-              setIsDropdownOpen={setIsDropdownOpen}
             />
           </div>
 
@@ -456,24 +442,6 @@ const PaymentDetails = () => {
                 key: board.key || `course-${index}`,
               }))}
               onChange={handleChange}
-              isDropdownOpen={isDropdownOpen}
-              setIsDropdownOpen={setIsDropdownOpen}
-            />
-          </div>
-
-          <div className="form-control">
-            <CustomSelect
-              label="State"
-              name="state"
-              value={formValues.state}
-              options={states.map((state, index) => ({
-                value: state || `State ${index}`,
-                label: state || `State ${index}`,
-                key: state || `state-${index}`,
-              }))}
-              onChange={handleChange}
-              isDropdownOpen={isDropdownOpen}
-              setIsDropdownOpen={setIsDropdownOpen}
             />
           </div>
         </div>

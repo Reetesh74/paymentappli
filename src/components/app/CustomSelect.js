@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Select, MenuItem, FormControl } from "@mui/material";
 
 const CustomSelect = ({
@@ -14,6 +14,7 @@ const CustomSelect = ({
   displayEmpty = true,
   ...props
 }) => {
+  const [isOpen, setIsOpen] = useState(false);
   return (
     <div className="form-control">
       {label && <label>{label}</label>}
@@ -26,7 +27,7 @@ const CustomSelect = ({
           IconComponent={() => (
             <img
               src={
-                isDropdownOpen
+                isOpen
                   ? "/icons/select-uparrow-icon.svg"
                   : "/icons/select-downarrow-icon.svg"
               }
@@ -34,8 +35,8 @@ const CustomSelect = ({
               className="select-icon"
             />
           )}
-          onOpen={() => setIsDropdownOpen(true)}
-          onClose={() => setIsDropdownOpen(false)}
+          onOpen={() => setIsOpen(true)}
+          onClose={() => setIsOpen(false)}
           displayEmpty={displayEmpty}
           renderValue={renderValue}
           sx={{

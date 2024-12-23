@@ -54,7 +54,7 @@ const SkillDropdown = ({ onProductIdsChange }) => {
 
   useEffect(() => {
     // Send the full selected subjects to the parent component
-    console.log("formValues.productIds", formValues.productIds);
+    // console.log("formValues.productIds", formValues.productIds);
     onProductIdsChange?.(formValues.productIds);
   }, [formValues.productIds, onProductIdsChange]);
 
