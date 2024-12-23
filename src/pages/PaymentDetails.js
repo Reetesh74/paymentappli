@@ -8,6 +8,8 @@ import { Modal } from "@mui/material";
 import ModalContent from "../components/PaymentDetails/ModalContent";
 import CustomSelect from "../components/app/CustomSelect";
 import Input from "../components/app/Input";
+import SkillDropdown from "../components/PaymentDetails/SkillDropdown";
+import SelectedSubjects from "../components/PaymentDetails/SelectedSubjects";
 
 import {
   getClassData,
@@ -36,6 +38,11 @@ const PaymentDetails = () => {
   const [courseid, setCourseid] = useState(null);
   const [minAmountPlan, setMinAmountPlan] = useState(0);
   const [maxAmountPlan, setMaxAmountPlan] = useState(0);
+  const [productIdsSkill, setProductIdsSkill] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [couponValue, setCouponValue] = useState(0);
+  const [periodPlan, setPeriodPlan] = useState(null);
+  const [intervalData, setIntervalData] = useState(null);
   const [formValues, setFormValues] = useState({
     amount: 0,
     name: "",
@@ -52,24 +59,42 @@ const PaymentDetails = () => {
     expiryDate: "",
   });
 
+  const handleProductIdsChange = (newProductIds) => {
+    console.log("handleProductIdsChange called with:", newProductIds);
+    setProductIdsSkill(newProductIds);
+  };
+
+  useEffect(() => {
+    const ids = productIdsSkill.map((subject) => subject._id);
+    calculateTotalAmount(ids);
+    console.log("productIdsSkill777777777777", ids);
+  }, [productIdsSkill]);
+
   // calculation part---------------------------------
   const [totalAmount, setTotalAmount] = useState({ min: 0, max: 0 });
+  const [subjecTotalMin, setsubjecTotalMin] = useState(0);
+  const [subjecTotalMax, setsubjecTotalMax] = useState(0);
   const calculateTotalAmount = (selectedIds) => {
-    const selectedSubjects = subjects.filter((subject) =>
-      selectedIds.includes(subject._id)
+    const filteredData = subjects.filter((item) =>
+      selectedIds.includes(item._id)
     );
-
-    const min = selectedSubjects.reduce(
-      (sum, subject) => sum + (subject.minAmount || 0),
-      0
+    console.log("filteredData==== ", filteredData);
+    const newsubjectarray = filteredData.concat(productIdsSkill);
+    console.log("qqqqqqqqqqqqqqqqqqqq ", newsubjectarray);
+    const total = newsubjectarray.reduce(
+      (acc, item) => {
+        acc.min += item.minAmount || 0;
+        acc.max += item.maxAmount || 0;
+        return acc;
+      },
+      { min: 0, max: 0 } // Initial values
     );
-
-    const max = selectedSubjects.reduce(
-      (sum, subject) => sum + (subject.maxAmount || 0),
-      0
-    );
-
-    setTotalAmount({ min: minAmountPlan + min, max: maxAmountPlan + max });
+    setsubjecTotalMax(total.max);
+    setsubjecTotalMin(total.min);
+    setTotalAmount({
+      min: minAmountPlan + total.min,
+      max: maxAmountPlan + total.max,
+    });
   };
 
   useEffect(() => {
@@ -136,15 +161,9 @@ const PaymentDetails = () => {
     fetchData();
   }, [courseid]);
 
-  const [showModal, setShowModal] = useState(false);
-  const [couponValue, setCouponValue] = useState(0);
-  const [periodPlan, setPeriodPlan] = useState(null);
-  const [intervalData, setIntervalData] = useState(null);
   const handleYearChange = (data) => {
     setIntervalData(data);
-    console.log("Updated Year Data:", data);
   };
-  console.log("course: ", courses);
   const handleChange = async (event) => {
     const { name, value } = event.target;
 
@@ -205,7 +224,6 @@ const PaymentDetails = () => {
     }
   };
 
-  console.log("intervalData==!= ", intervalData);
   useEffect(() => {
     if (courseid && periodPlan && intervalData) {
       fetchPlans(courseid, intervalData);
@@ -214,10 +232,7 @@ const PaymentDetails = () => {
 
   const fetchPlans = async (courseId, intervalidss) => {
     try {
-      // debugger;
-      console.log("intervalidss", intervalidss);
       const plans = await getPlansByCourseId(courseId);
-      console.log("plans===== ", plans);
       const yearlyPlans = plans.filter(
         (plan) => plan.period === "yearly" && plan.interval === intervalidss
       );
@@ -230,11 +245,14 @@ const PaymentDetails = () => {
         const minAmount = Math.min(
           ...yearlyPlans.map((plan) => plan.minAmount || 0)
         );
-        setTotalAmount({ min: minAmount, max: maxAmount });
+        setTotalAmount({
+          min: minAmount + subjecTotalMin,
+          max: maxAmount + subjecTotalMax,
+        });
         setMinAmountPlan(minAmount);
         setMaxAmountPlan(maxAmount);
       } else {
-        setTotalAmount({ min: 0, max: 0 });
+        setTotalAmount({ min: subjecTotalMin, max: subjecTotalMax });
         setMinAmountPlan(0);
         setMaxAmountPlan(0);
       }
@@ -256,6 +274,8 @@ const PaymentDetails = () => {
     setShowModal(false);
 
     try {
+      const allsubject = formValues.productIds.concat(productIdsSkill);
+
       const requestData = {
         amount: Number(price),
         period: formValues.period,
@@ -266,7 +286,7 @@ const PaymentDetails = () => {
         interval: intervalData,
         coupon: formValues.coupon,
         standards: formValues.standards,
-        productIds: formValues.productIds,
+        productIds: allsubject,
         currency: formValues.currency,
         expiryDate: formValues.expiryDate,
         name: "PLAN-SUB-3",
@@ -303,10 +323,13 @@ const PaymentDetails = () => {
 
   const handleRemoveSubject = (subjectId) => {
     setFormValues((prevValues) => {
+      console.log("prevValues", prevValues);
       const updatedProductIds = prevValues.productIds.filter(
         (id) => id !== subjectId
       );
+      console.log("updatedProductIds", updatedProductIds);
       calculateTotalAmount(updatedProductIds);
+
       return {
         ...prevValues,
         productIds: updatedProductIds,
@@ -332,31 +355,12 @@ const PaymentDetails = () => {
           ) : (
             <Month onMonthChange={handleMonthChange} />
           )}
-          <div className="subject-control">
-            <div className="selected-subjects">
-              {formValues.productIds.length > 0 && (
-                <div>
-                  <ul className="subject-list">
-                    {formValues.productIds.map((productId) => {
-                      const subject = subjects.find(
-                        (subject) => subject._id === productId
-                      );
-                      return subject ? (
-                        <li key={subject._id} className="subject-item">
-                          {subject.name}
-                          <button
-                            onClick={() => handleRemoveSubject(productId)}
-                          >
-                            <img src="/icons/cross-icon.svg" alt="Remove" />
-                          </button>
-                        </li>
-                      ) : null;
-                    })}
-                  </ul>
-                </div>
-              )}
-            </div>
-          </div>
+          <SelectedSubjects
+            subjects={subjects}
+            productIds={formValues.productIds}
+            onRemoveSubject={handleRemoveSubject}
+            period={formValues.period}
+          />
         </div>
 
         <div className="row1">
@@ -408,13 +412,19 @@ const PaymentDetails = () => {
               setIsDropdownOpen={setIsDropdownOpen}
               multiple
               renderValue={(selected) => {
-                if (!selected || selected.length === 0) return "Select";
+                if (!selected || selected.length === 0) {
+                  return formValues.period === "yearly"
+                    ? "All Subject"
+                    : "Select";
+                }
                 const selectedLabels = subjects
                   .filter((subject) => selected.includes(subject._id))
                   .map((subject) => subject.name);
                 return selectedLabels.join(", ");
               }}
+              disabled={formValues.period === "yearly"}
             />
+            <SkillDropdown onProductIdsChange={handleProductIdsChange} />
           </div>
         </div>
 
@@ -427,7 +437,7 @@ const PaymentDetails = () => {
               options={classes.map((classItem, index) => ({
                 value: classItem.name || `Class ${index}`,
                 label: classItem.name || `Class ${index}`,
-                key: classItem.id || `class-${index}`, // Use unique key
+                key: classItem.id || `class-${index}`,
               }))}
               onChange={handleChange}
               isDropdownOpen={isDropdownOpen}

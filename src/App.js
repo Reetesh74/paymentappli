@@ -5,7 +5,7 @@ import PaymentStatus from "./components/PaymentStatus";
 import StudentEnrollment from "./pages/StudentEnrollment";
 import PaymentTable from "./pages/PaymentTable";
 import HomePage from "./pages/HomePage";
-import Year from "./components/PaymentDetails/Year";
+import SkillDropdown from "./components/PaymentDetails/SkillDropdown";
 
 function App() {
   return (
@@ -16,7 +16,7 @@ function App() {
         <Route path="/payment-status" element={<PaymentStatus />} />
         <Route path="/student-enrollemnt" element={<StudentEnrollment />} />
         <Route path="/payment-details" element={<PaymentTable />} />
-        <Route path="/year" element={<Year />} />
+        <Route path="/skill" element={<SkillDropdown />} />
       </Routes>
     </Router>
   );
