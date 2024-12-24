@@ -6,10 +6,13 @@ const SelectedSubjects = ({
   onRemoveSubject,
   period,
 }) => {
- 
-  if (period === "yearly") {
+  console.log("productIds = ", productIds);
+  console.log("productIds.length ===", productIds.length);
+  const isYearlyAndEmpty = period === "yearly" && productIds.length === 0;
+  if (isYearlyAndEmpty) {
     productIds = subjects.map((subject) => subject._id);
   }
+
   return (
     <div className="subject-control">
       <div className="selected-subjects">
@@ -23,7 +26,7 @@ const SelectedSubjects = ({
                 return subject ? (
                   <li key={subject._id} className="subject-item">
                     {subject.name}
-                    {period !== "yearly" && ( 
+                    {!isYearlyAndEmpty && (
                       <button onClick={() => onRemoveSubject(subject._id)}>
                         <img src="/icons/cross-icon.svg" alt="Remove" />
                       </button>

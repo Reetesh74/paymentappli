@@ -19,8 +19,8 @@ import {
   getBoardData,
   getPlansByCourseId,
   getSubjectById,
+  getSubjectData,
 } from "../utils/api";
-import { color, height } from "@mui/system";
 
 const PaymentDetails = () => {
   const navigate = useNavigate();
@@ -40,6 +40,10 @@ const PaymentDetails = () => {
   const [couponValue, setCouponValue] = useState(0);
   const [periodPlan, setPeriodPlan] = useState(null);
   const [intervalData, setIntervalData] = useState(null);
+  const [totalAmount, setTotalAmount] = useState({ min: 0, max: 0 });
+  const [subjecTotalMin, setsubjecTotalMin] = useState(0);
+  const [subjecTotalMax, setsubjecTotalMax] = useState(0);
+  const [resultClass, setShowClass] = useState(false);
   const [formValues, setFormValues] = useState({
     amount: 0,
     name: "",
@@ -57,34 +61,26 @@ const PaymentDetails = () => {
   });
 
   const handleProductIdsChange = (newProductIds) => {
-    // console.log("handleProductIdsChange called with:", newProductIds);
     setProductIdsSkill(newProductIds);
   };
 
   useEffect(() => {
     const ids = productIdsSkill.map((subject) => subject._id);
     calculateTotalAmount(ids);
-    // console.log("productIdsSkill777777777777", ids);
   }, [productIdsSkill]);
 
-  // calculation part---------------------------------
-  const [totalAmount, setTotalAmount] = useState({ min: 0, max: 0 });
-  const [subjecTotalMin, setsubjecTotalMin] = useState(0);
-  const [subjecTotalMax, setsubjecTotalMax] = useState(0);
   const calculateTotalAmount = (selectedIds) => {
     const filteredData = subjects.filter((item) =>
       selectedIds.includes(item._id)
     );
-    // console.log("filteredData==== ", filteredData);
     const newsubjectarray = filteredData.concat(productIdsSkill);
-    // console.log("qqqqqqqqqqqqqqqqqqqq ", newsubjectarray);
     const total = newsubjectarray.reduce(
       (acc, item) => {
         acc.min += item.minAmount || 0;
         acc.max += item.maxAmount || 0;
         return acc;
       },
-      { min: 0, max: 0 } // Initial values
+      { min: 0, max: 0 }
     );
     setsubjecTotalMax(total.max);
     setsubjecTotalMin(total.min);
@@ -93,13 +89,31 @@ const PaymentDetails = () => {
       max: maxAmountPlan + total.max,
     });
   };
+  const checkSubjectsForClass = (normalizedSubjects, subjects) => {
+    for (let normalized of normalizedSubjects) {
+      const matchedSubject = subjects.find(
+        (subject) => subject._id === normalized._id
+      );
+
+      if (matchedSubject) {
+        if (
+          matchedSubject.allowedStandards &&
+          matchedSubject.allowedStandards.length > 0
+        ) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         if (courseid) {
           const subjectDataById = await getSubjectById(courseid);
-
+          const subjectData = await getSubjectData();
           if (subjectDataById && Array.isArray(subjectDataById.subjects)) {
             const normalizedSubjects = subjectDataById.subjects.map(
               (subject) => ({
@@ -109,7 +123,21 @@ const PaymentDetails = () => {
                 maxAmount: subject.maxAmount,
               })
             );
-            setSubjects(normalizedSubjects);
+            const result = checkSubjectsForClass(
+              normalizedSubjects,
+              subjectData
+            );
+            setShowClass(result);
+            if (result) {
+              const matchingStandards = subjectData.filter((subject) =>
+                subject.allowedStandards.some((standardId) =>
+                  formValues.standards.includes(standardId)
+                )
+              );
+              setSubjects(matchingStandards);
+            } else {
+              setSubjects(normalizedSubjects);
+            }
           } else {
             console.error("Subject data not found or malformed response");
           }
@@ -153,7 +181,7 @@ const PaymentDetails = () => {
       }
     };
     fetchData();
-  }, [courseid]);
+  }, [courseid, formValues.standards]);
 
   const handleYearChange = (data) => {
     console.log("handleYearChange called with data:", data);
@@ -215,7 +243,6 @@ const PaymentDetails = () => {
 
     if (name === "period") {
       setPeriodPlan(value);
-      // fetchPlans(courseid);
     }
   };
 
@@ -232,7 +259,6 @@ const PaymentDetails = () => {
         (plan) => plan.period === "yearly" && plan.interval === intervalidss
       );
 
-      // console.log("yearlyPlans== ", yearlyPlans);
       if (yearlyPlans.length > 0 && periodPlan === "yearly") {
         const maxAmount = Math.max(
           ...yearlyPlans.map((plan) => plan.maxAmount || 0)
@@ -270,7 +296,7 @@ const PaymentDetails = () => {
 
     try {
       const allsubject = formValues.productIds.concat(productIdsSkill);
-
+      console.log("formValues.standardsapi = ", formValues.standards);
       const requestData = {
         amount: Number(price),
         period: formValues.period,
@@ -313,16 +339,13 @@ const PaymentDetails = () => {
 
   const handleMonthChange = (data) => {
     setIntervalData(data);
-    // console.log("Updated month Data:", data);
   };
 
   const handleRemoveSubject = (subjectId) => {
     setFormValues((prevValues) => {
-      // console.log("prevValues", prevValues);
       const updatedProductIds = prevValues.productIds.filter(
         (id) => id !== subjectId
       );
-      // console.log("updatedProductIds", updatedProductIds);
       calculateTotalAmount(updatedProductIds);
 
       return {
@@ -344,20 +367,28 @@ const PaymentDetails = () => {
         <div className="progressbar">
           <ProgressBar />
         </div>
-        <div className="form-control">
-          <CustomSelect
-            label="Select Course"
-            name="courseType"
-            value={formValues.courseType}
-            options={courses}
-            onChange={handleChange}
-            renderValue={(selected) => {
-              const selectedOption = courses.find(
-                (course) => course.value === selected
-              );
-              return selectedOption ? selectedOption.label : "Select Course";
-            }}
-          />
+        <div className="row3">
+          <div className="form-control subjectshow">
+            <CustomSelect
+              label="Select Course"
+              name="courseType"
+              value={formValues.courseType || ""}
+              options={courses}
+              onChange={handleChange}
+              renderValue={(selected) => {
+                const selectedOption = courses.find(
+                  (course) => course.value === selected
+                );
+                return selectedOption ? selectedOption.label : "Select Course";
+              }}
+            />
+            <SelectedSubjects
+              subjects={subjects}
+              productIds={formValues.productIds}
+              onRemoveSubject={handleRemoveSubject}
+              period={formValues.period}
+            />
+          </div>
         </div>
 
         <div className="row1">
@@ -379,25 +410,22 @@ const PaymentDetails = () => {
             ) : (
               <Month onMonthChange={handleMonthChange} />
             )}
-            <SelectedSubjects
-              subjects={subjects}
-              productIds={formValues.productIds}
-              onRemoveSubject={handleRemoveSubject}
-              period={formValues.period}
-            />
           </div>
           <div className="form-control">
-            <CustomSelect
-              label="Class"
-              name="class"
-              value={formValues.class}
-              options={classes.map((classItem, index) => ({
-                value: classItem.name || `Class ${index}`,
-                label: classItem.name || `Class ${index}`,
-                key: classItem.id || `class-${index}`,
-              }))}
-              onChange={handleChange}
-            />
+            <div className="form-control">
+              <CustomSelect
+                label="Class"
+                name="class"
+                value={formValues.class || ""}
+                options={classes.map((classItem, index) => ({
+                  value: classItem.name || `Class ${index}`,
+                  label: classItem.name || `Class ${index}`,
+                  key: classItem.id || `class-${index}`,
+                }))}
+                onChange={handleChange}
+                disabled={!resultClass}
+              />
+            </div>
           </div>
         </div>
 
