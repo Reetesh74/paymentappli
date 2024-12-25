@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { getSubjectById } from "../../utils/api";
 import CustomSelect from "../app/CustomSelect";
 
-const SkillDropdown = ({ onProductIdsChange }) => {
+const SkillDropdown = ({ disabled,onProductIdsChange }) => {
   const [subjects, setSubjects] = useState([]);
   const [formValues, setFormValues] = useState({ productIds: [] });
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -63,6 +63,7 @@ const SkillDropdown = ({ onProductIdsChange }) => {
       <CustomSelect
         label="Skill"
         name="productIds"
+        
         value={formValues.productIds.map((subject) => subject._id)} // Send only the ids to the select component
         options={subjects.map((subject, index) => ({
           value: subject._id || `subject-${index}`,
@@ -83,6 +84,7 @@ const SkillDropdown = ({ onProductIdsChange }) => {
             .map((subject) => subject.name);
           return selectedLabels.join(", ");
         }}
+        disabled={disabled}
       />
     </div>
   );

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import CustomSelect from "../app/CustomSelect";
 import { getYearData } from "../../utils/api";
 
-const Year = ({ onYearChange }) => {
+const Year = ({disabled, onYearChange }) => {
   const [yearData, setYearData] = useState([]);
   const [selectedYear, setSelectedYear] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -59,6 +59,7 @@ const Year = ({ onYearChange }) => {
                 "Select Year"
             : "Select Year";
         }}
+        disabled={disabled}
       />
     </div>
   );

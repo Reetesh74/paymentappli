@@ -273,6 +273,7 @@ const PaymentDetails = () => {
         setMinAmountPlan(minAmount);
         setMaxAmountPlan(maxAmount);
       } else {
+        
         setTotalAmount({ min: subjecTotalMin, max: subjecTotalMax });
         setMinAmountPlan(0);
         setMaxAmountPlan(0);
@@ -295,8 +296,20 @@ const PaymentDetails = () => {
     setShowModal(false);
 
     try {
-      const allsubject = formValues.productIds.concat(productIdsSkill);
-      console.log("formValues.standardsapi = ", formValues.standards);
+      let allsubject = [];
+
+      if (formValues.productIds.length === 0) {
+        console.log("subjects", subjects);
+        const fixPlansubids = subjects.map((subject) => subject._id);
+        console.log("this is my al isddddd ", fixPlansubids);
+        const skillSubjectIds = productIdsSkill.map((subject) => subject._id);
+        allsubject = fixPlansubids.concat(skillSubjectIds);
+        console.log("this is my al isd ", allsubject);
+      } else {
+        const skillSubjectIds = productIdsSkill.map((subject) => subject._id);
+        allsubject = formValues.productIds.concat(skillSubjectIds);
+      }
+
       const requestData = {
         amount: Number(price),
         period: formValues.period,
@@ -402,13 +415,20 @@ const PaymentDetails = () => {
                 { value: "yearly", label: "Yearly" },
               ]}
               onChange={handleChange}
+              disabled={!formValues.courseType}
             />
           </div>
           <div className="subjectshow">
             {formValues.period === "yearly" ? (
-              <Year onYearChange={handleYearChange} />
+              <Year
+                onYearChange={handleYearChange}
+                disabled={!formValues.period}
+              />
             ) : (
-              <Month onMonthChange={handleMonthChange} />
+              <Month
+                onMonthChange={handleMonthChange}
+                disabled={!formValues.period}
+              />
             )}
           </div>
           <div className="form-control">
@@ -441,6 +461,7 @@ const PaymentDetails = () => {
                 key: board.key || `course-${index}`,
               }))}
               onChange={handleChange}
+              disabled={!intervalData}
             />
           </div>
           <div className="form-control">
@@ -466,10 +487,14 @@ const PaymentDetails = () => {
                   .map((subject) => subject.name);
                 return selectedLabels.join(", ");
               }}
+              disabled={!formValues.board}
             />
           </div>
           <div>
-            <SkillDropdown onProductIdsChange={handleProductIdsChange} />
+            <SkillDropdown
+              disabled={!intervalData}
+              onProductIdsChange={handleProductIdsChange}
+            />
           </div>
         </div>
 
@@ -569,6 +594,7 @@ const PaymentDetails = () => {
           <ModalContent
             formValues={formValues}
             subjects={subjects}
+            courses={courses}
             onConfirm={handleConfirm}
             onClose={handleClose}
           />

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import CustomSelect from "../app/CustomSelect";
 
-const Month = ({ onMonthChange }) => {
+const Month = ({ disabled, onMonthChange }) => {
   const [monthData, setMonthData] = useState([
     { value: 1, label: "Weekly" },
     { value: 2, label: "Monthly" },
@@ -37,6 +37,7 @@ const Month = ({ onMonthChange }) => {
                 "Select"
             : "Select";
         }}
+        disabled={disabled}
       />
     </div>
   );

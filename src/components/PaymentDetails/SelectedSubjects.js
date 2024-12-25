@@ -6,8 +6,8 @@ const SelectedSubjects = ({
   onRemoveSubject,
   period,
 }) => {
-  console.log("productIds = ", productIds);
-  console.log("productIds.length ===", productIds.length);
+  // console.log("productIds = ", productIds);
+  // console.log("productIds.length ===", productIds.length);
   const isYearlyAndEmpty = period === "yearly" && productIds.length === 0;
   if (isYearlyAndEmpty) {
     productIds = subjects.map((subject) => subject._id);
