@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import CustomSelect from "../app/CustomSelect";
 import { getYearData } from "../../utils/api";
 
-const Year = ({disabled, onYearChange }) => {
+const Year = ({ disabled, onYearChange }) => {
   const [yearData, setYearData] = useState([]);
   const [selectedYear, setSelectedYear] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -21,7 +21,7 @@ const Year = ({disabled, onYearChange }) => {
             label: item.name,
             isActive: item.isActive,
           }));
-        console.log("option:====e ", options);
+
         setYearData(options);
       } catch (error) {
         console.error("Error fetching year data:", error);

@@ -6,13 +6,16 @@ const SelectedSubjects = ({
   onRemoveSubject,
   period,
 }) => {
-  // console.log("productIds = ", productIds);
+  // console.log("productIds ============ ", productIds);
+  // console.log("periods", period);
+  // console.log("subject======", subjects);
   // console.log("productIds.length ===", productIds.length);
-  const isYearlyAndEmpty = period === "yearly" && productIds.length === 0;
-  if (isYearlyAndEmpty) {
-    productIds = subjects.map((subject) => subject._id);
-  }
 
+  const isYearlyAndEmpty = period === "yearly";
+  // if (isYearlyAndEmpty) {
+  //   productIds = subjects.map((subject) => subject._id);
+  // }
+  // console.log("productIdsproductIds", productIds);
   return (
     <div className="subject-control">
       <div className="selected-subjects">

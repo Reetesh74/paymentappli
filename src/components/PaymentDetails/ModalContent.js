@@ -7,18 +7,28 @@ const ModalContent = ({
   onConfirm,
   courses,
   onClose,
+  allSubjects,
+  skillSubject,
 }) => {
   const getSubjectNames = (ids) => {
-    debugger
+    // debugger
+    console.log("allSubjects==uuuuuuuuuuu ", allSubjects);
+    console.log("skillSubject==uuuuuuuuuuu ", skillSubject);
+    console.log("skillSubject==subject", subjects);
+    const subjectlist=subjects.concat(skillSubject)
+    console.log("llllllllllllllllll",subjectlist)
     return ids
       .map((id) => {
-        const subject = subjects.find((subject) => subject._id === id);
+        const subject = subjectlist.find((subject) => subject._id === id);
+        console.log("subjectdatacheck", subject);
+        console.log("subject.name", subject ? subject.name : `Unknown (${id})`);
         return subject ? subject.name : `Unknown (${id})`;
       })
       .join(", ");
   };
 
-  console.log("course name this is the best ", courses);
+  console.log("allSubjects== ", allSubjects);
+  // console.log("course name this is the best ", courses);
   const getCourseName = (id) => {
     console.log("ids ", id);
     const course = courses.find((course) => course.value === id);
@@ -149,8 +159,8 @@ const ModalContent = ({
           </Grid>
           <Grid item xs={6}>
             <Typography variant="body1" sx={{ color: "#64748B" }}>
-              {formValues.productIds && formValues.productIds.length > 0
-                ? getSubjectNames(formValues.productIds)
+              {allSubjects && allSubjects.length > 0
+                ? getSubjectNames(allSubjects)
                 : "No Subjects Selected"}
             </Typography>
           </Grid>

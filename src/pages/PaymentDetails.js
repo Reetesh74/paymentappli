@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import moment from "moment";
 import ProgressBar from "../components/ProgressBar/ProgressBar";
 import "../styles/PaymentDetails.css";
 import Year from "../components/PaymentDetails/Year";
@@ -44,6 +45,10 @@ const PaymentDetails = () => {
   const [subjecTotalMin, setsubjecTotalMin] = useState(0);
   const [subjecTotalMax, setsubjecTotalMax] = useState(0);
   const [resultClass, setShowClass] = useState(false);
+  const [allSubjectsarray, setAllSubjects] = useState([]);
+  const [productCourseIds, setProductCourseIds] = useState([]);
+  const [allSubject, setAllSubject] = useState([]);
+
   const [formValues, setFormValues] = useState({
     amount: 0,
     name: "",
@@ -58,6 +63,7 @@ const PaymentDetails = () => {
     productIds: [],
     coupon: "",
     expiryDate: "",
+    planType: "salesPanel",
   });
 
   const handleProductIdsChange = (newProductIds) => {
@@ -114,6 +120,8 @@ const PaymentDetails = () => {
         if (courseid) {
           const subjectDataById = await getSubjectById(courseid);
           const subjectData = await getSubjectData();
+
+          setAllSubject(subjectData);
           if (subjectDataById && Array.isArray(subjectDataById.subjects)) {
             const normalizedSubjects = subjectDataById.subjects.map(
               (subject) => ({
@@ -184,7 +192,6 @@ const PaymentDetails = () => {
   }, [courseid, formValues.standards]);
 
   const handleYearChange = (data) => {
-    console.log("handleYearChange called with data:", data);
     setIntervalData(data);
   };
 
@@ -246,43 +253,62 @@ const PaymentDetails = () => {
     }
   };
 
+  const fetchPlans = useCallback(
+    async (courseId, intervalidss) => {
+      try {
+        // console.log("pladetails subject", subjects);
+        const plans = await getPlansByCourseId(courseId);
+        console.log("plans yearly: ", plans);
+        const yearlyPlans = plans.filter(
+          (plan) =>
+            plan.period === "yearly" &&
+            plan.interval === intervalidss &&
+            plan.planType === "adminPanel"
+        );
+        const productIdsArray = yearlyPlans[0]?.productIds || [];
+        // console.log("prodictiddddddddddddddddsddfggfdfdfdffddf ", yearlyPlans);
+
+        setProductCourseIds(productIdsArray);
+        if (yearlyPlans.length > 0 && periodPlan === "yearly") {
+          const maxAmount = Math.max(
+            ...yearlyPlans.map((plan) => plan.maxAmount || 0)
+          );
+          const minAmount = Math.min(
+            ...yearlyPlans.map((plan) => plan.minAmount || 0)
+          );
+          setTotalAmount({
+            min: minAmount + subjecTotalMin,
+            max: maxAmount + subjecTotalMax,
+          });
+          setMinAmountPlan(minAmount);
+          setMaxAmountPlan(maxAmount);
+        } else {
+          setTotalAmount({ min: subjecTotalMin, max: subjecTotalMax });
+          setMinAmountPlan(0);
+          setMaxAmountPlan(0);
+        }
+      } catch (error) {
+        console.error("Error fetching plans:", error);
+        setTotalAmount({ min: 0, max: 0 });
+      }
+    },
+    [
+      subjects,
+      periodPlan,
+      subjecTotalMin,
+      subjecTotalMax,
+      setProductCourseIds,
+      setTotalAmount,
+      setMinAmountPlan,
+      setMaxAmountPlan,
+      getPlansByCourseId,
+    ]
+  );
   useEffect(() => {
     if (courseid && periodPlan && intervalData) {
       fetchPlans(courseid, intervalData);
     }
-  }, [periodPlan, courseid, intervalData]);
-
-  const fetchPlans = async (courseId, intervalidss) => {
-    try {
-      const plans = await getPlansByCourseId(courseId);
-      const yearlyPlans = plans.filter(
-        (plan) => plan.period === "yearly" && plan.interval === intervalidss
-      );
-
-      if (yearlyPlans.length > 0 && periodPlan === "yearly") {
-        const maxAmount = Math.max(
-          ...yearlyPlans.map((plan) => plan.maxAmount || 0)
-        );
-        const minAmount = Math.min(
-          ...yearlyPlans.map((plan) => plan.minAmount || 0)
-        );
-        setTotalAmount({
-          min: minAmount + subjecTotalMin,
-          max: maxAmount + subjecTotalMax,
-        });
-        setMinAmountPlan(minAmount);
-        setMaxAmountPlan(maxAmount);
-      } else {
-        
-        setTotalAmount({ min: subjecTotalMin, max: subjecTotalMax });
-        setMinAmountPlan(0);
-        setMaxAmountPlan(0);
-      }
-    } catch (error) {
-      console.error("Error fetching plans:", error);
-      setTotalAmount({ min: 0, max: 0 });
-    }
-  };
+  }, [fetchPlans, courseid, periodPlan, intervalData]);
 
   const handleNext = async () => {
     setShowModal(true);
@@ -292,23 +318,33 @@ const PaymentDetails = () => {
     navigate("/");
   };
 
+  const computeAllSubjects = useCallback(() => {
+    if (formValues.productIds.length === 0) {
+      const fixPlansubids = subjects.map((subject) => subject._id);
+      const skillSubjectIds = productIdsSkill.map((subject) => subject._id);
+      const allSubjects = fixPlansubids.concat(skillSubjectIds);
+      setAllSubjects(allSubjects);
+      return allSubjects;
+    } else {
+      const skillSubjectIds = productIdsSkill.map((subject) => subject._id);
+      const allSubjects = formValues.productIds.concat(skillSubjectIds);
+      setAllSubjects(allSubjects);
+      return allSubjects;
+    }
+  }, [formValues.productIds, subjects, productIdsSkill, setAllSubjects]);
+
+  useEffect(() => {
+    computeAllSubjects();
+  }, [computeAllSubjects]);
+
   const handleConfirm = async () => {
     setShowModal(false);
 
     try {
-      let allsubject = [];
+      const expiryDate = moment().add(intervalData * 12, "months");
+      const formattedExpiryDate = expiryDate.toISOString();
 
-      if (formValues.productIds.length === 0) {
-        console.log("subjects", subjects);
-        const fixPlansubids = subjects.map((subject) => subject._id);
-        console.log("this is my al isddddd ", fixPlansubids);
-        const skillSubjectIds = productIdsSkill.map((subject) => subject._id);
-        allsubject = fixPlansubids.concat(skillSubjectIds);
-        console.log("this is my al isd ", allsubject);
-      } else {
-        const skillSubjectIds = productIdsSkill.map((subject) => subject._id);
-        allsubject = formValues.productIds.concat(skillSubjectIds);
-      }
+      const allsubject = computeAllSubjects();
 
       const requestData = {
         amount: Number(price),
@@ -322,14 +358,15 @@ const PaymentDetails = () => {
         standards: formValues.standards,
         productIds: allsubject,
         currency: formValues.currency,
-        expiryDate: formValues.expiryDate,
+        expiryDate: formattedExpiryDate,
         name: "PLAN-SUB-3",
+        planType: "salesPanel",
       };
 
       const rawResponse = await createOrUpdatePlan(requestData);
 
       if (rawResponse.ok) {
-        const { _id, courseType } = rawResponse.data;
+        const { _id } = rawResponse.data;
         const requestMap = {
           courseType: formValues.courseType,
           enrollmentId,
@@ -347,8 +384,6 @@ const PaymentDetails = () => {
   const handleClose = () => {
     setShowModal(false);
   };
-
-  // -----------------------------------for year-------------------------------------------------
 
   const handleMonthChange = (data) => {
     setIntervalData(data);
@@ -396,8 +431,12 @@ const PaymentDetails = () => {
               }}
             />
             <SelectedSubjects
-              subjects={subjects}
-              productIds={formValues.productIds}
+              subjects={subjects.length > 0 ? subjects : allSubject}
+              productIds={
+                formValues.productIds.length > 0
+                  ? formValues.productIds
+                  : productCourseIds
+              }
               onRemoveSubject={handleRemoveSubject}
               period={formValues.period}
             />
@@ -415,19 +454,19 @@ const PaymentDetails = () => {
                 { value: "yearly", label: "Yearly" },
               ]}
               onChange={handleChange}
-              disabled={!formValues.courseType}
+              // disabled={!formValues.courseType}
             />
           </div>
           <div className="subjectshow">
             {formValues.period === "yearly" ? (
               <Year
                 onYearChange={handleYearChange}
-                disabled={!formValues.period}
+                // disabled={!formValues.period}
               />
             ) : (
               <Month
                 onMonthChange={handleMonthChange}
-                disabled={!formValues.period}
+                // disabled={!formValues.period}
               />
             )}
           </div>
@@ -443,7 +482,7 @@ const PaymentDetails = () => {
                   key: classItem.id || `class-${index}`,
                 }))}
                 onChange={handleChange}
-                disabled={!resultClass}
+                // disabled={!resultClass}
               />
             </div>
           </div>
@@ -461,7 +500,7 @@ const PaymentDetails = () => {
                 key: board.key || `course-${index}`,
               }))}
               onChange={handleChange}
-              disabled={!intervalData}
+              // disabled={!intervalData}
             />
           </div>
           <div className="form-control">
@@ -487,12 +526,12 @@ const PaymentDetails = () => {
                   .map((subject) => subject.name);
                 return selectedLabels.join(", ");
               }}
-              disabled={!formValues.board}
+              // disabled={!formValues.board}
             />
           </div>
           <div>
             <SkillDropdown
-              disabled={!intervalData}
+              // disabled={!intervalData}
               onProductIdsChange={handleProductIdsChange}
             />
           </div>
@@ -595,6 +634,8 @@ const PaymentDetails = () => {
             formValues={formValues}
             subjects={subjects}
             courses={courses}
+            skillSubject={productIdsSkill}
+            allSubjects={allSubjectsarray}
             onConfirm={handleConfirm}
             onClose={handleClose}
           />
