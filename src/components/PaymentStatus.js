@@ -110,6 +110,7 @@ const PaymentStatus = () => {
           }
         }
       }
+      
       navigate("/success-page", { state: { enrollmentId, mobile } });
     } catch (error) {
       let errorMessage = "An unexpected error occurred.";

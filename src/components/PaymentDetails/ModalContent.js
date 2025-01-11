@@ -12,11 +12,11 @@ const ModalContent = ({
 }) => {
   const getSubjectNames = (ids) => {
     // debugger
-    console.log("allSubjects==uuuuuuuuuuu ", allSubjects);
-    console.log("skillSubject==uuuuuuuuuuu ", skillSubject);
-    console.log("skillSubject==subject", subjects);
+    // console.log("allSubjects==uuuuuuuuuuu ", allSubjects);
+    // console.log("skillSubject==uuuuuuuuuuu ", skillSubject);
+    // console.log("skillSubject==subject", subjects);
     const subjectlist=subjects.concat(skillSubject)
-    console.log("llllllllllllllllll",subjectlist)
+    // console.log("llllllllllllllllll",subjectlist)
     return ids
       .map((id) => {
         const subject = subjectlist.find((subject) => subject._id === id);

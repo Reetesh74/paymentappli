@@ -186,3 +186,64 @@ export const getEnrollStudentTableData = async () => {
   const response = await fetchWithAuth(endpoint);
   return handleResponse(response, "Failed to fetch subject data");
 };
+
+// ----------------------------------this is admin section---------------------------------------
+
+const BASE_URL_LOCAL = "http://localhost:8080/api";
+
+// const getToken = () => localStorage.getItem("authToken");
+// localStorage.setItem("authToken", userToken);
+
+const fetchWithAuthLocal = async (endpoint, options = {}) => {
+  const headers = {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+    ...options.headers,
+    Authorization:
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NzNmM2MyMTYwMjgzMmQ1ZDU5NmM4NmEiLCJyb2xlIjoiQkRBIiwibW9kZXJhdG9yIjpmYWxzZSwiZW1haWwiOiJ0ZXN0LnN0dWRlbnRAZ21haWwuY29tIiwibmFtZSI6IlRlc3QgQkRBIiwiaWF0IjoxNzM1OTg0OTE1fQ.t0bASH6S4Yl0v_K1irlF_91SOzTRGnHDRX9wB066dyk",
+  };
+
+  console.log("Making request to:", `${BASE_URL_LOCAL}${endpoint}`);
+  console.log("With headers:", headers);
+
+  try {
+    const response = await fetch(`${BASE_URL_LOCAL}${endpoint}`, {
+      ...options,
+      headers,
+    });
+
+    console.log("Response status:", response.status);
+    console.log("Response headers:", response.headers);
+
+    const data = await response.json();
+    console.log("Response data:", data);
+
+    return { status: response.status, ok: response.ok, data };
+  } catch (error) {
+    console.error("Fetch error:", error.message);
+    throw new Error("Network error");
+  }
+};
+
+const handleResponseLocal = (response, errorMessage) => {
+  if (!response.ok) {
+    const error = response.data?.message || "Unknown error";
+    throw new Error(`${errorMessage}: ${error}`);
+  }
+  return response.data;
+};
+
+export const getAllCoupons = async (pageNum, pageSize) => {
+  const endpoint = `/coupon/read/get-all?pageNum=${pageNum}&pageSize=${pageSize}`;
+  const response = await fetchWithAuthLocal(endpoint);
+  return handleResponseLocal(response, "Failed to fetch Subscription data");
+};
+
+export const applyCoupon = async (couponDetails) => {
+  const endpoint = `/plan/coupon/apply-coupon`;
+  const response = await fetchWithAuthLocal(endpoint, {
+    method: "POST",
+    body: JSON.stringify(couponDetails),
+  });
+  return response;
+};

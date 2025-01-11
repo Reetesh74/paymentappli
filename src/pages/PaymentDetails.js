@@ -11,7 +11,7 @@ import CustomSelect from "../components/app/CustomSelect";
 import Input from "../components/app/Input";
 import SkillDropdown from "../components/PaymentDetails/SkillDropdown";
 import SelectedSubjects from "../components/PaymentDetails/SelectedSubjects";
-
+import Coupon from "../components/PaymentDetails/Coupon";
 import {
   getClassData,
   getCourseData,
@@ -48,7 +48,7 @@ const PaymentDetails = () => {
   const [allSubjectsarray, setAllSubjects] = useState([]);
   const [productCourseIds, setProductCourseIds] = useState([]);
   const [allSubject, setAllSubject] = useState([]);
-
+  const [amounts, setAmounts] = useState({ minAmount: 0, maxAmount: 0 });
   const [formValues, setFormValues] = useState({
     amount: 0,
     name: "",
@@ -70,32 +70,8 @@ const PaymentDetails = () => {
     setProductIdsSkill(newProductIds);
   };
 
-  useEffect(() => {
-    const ids = productIdsSkill.map((subject) => subject._id);
-    calculateTotalAmount(ids);
-  }, [productIdsSkill]);
-
-  const calculateTotalAmount = (selectedIds) => {
-    const filteredData = subjects.filter((item) =>
-      selectedIds.includes(item._id)
-    );
-    const newsubjectarray = filteredData.concat(productIdsSkill);
-    const total = newsubjectarray.reduce(
-      (acc, item) => {
-        acc.min += item.minAmount || 0;
-        acc.max += item.maxAmount || 0;
-        return acc;
-      },
-      { min: 0, max: 0 }
-    );
-    setsubjecTotalMax(total.max);
-    setsubjecTotalMin(total.min);
-    setTotalAmount({
-      min: minAmountPlan + total.min,
-      max: maxAmountPlan + total.max,
-    });
-  };
   const checkSubjectsForClass = (normalizedSubjects, subjects) => {
+    console.log("subjects", subjects);
     for (let normalized of normalizedSubjects) {
       const matchedSubject = subjects.find(
         (subject) => subject._id === normalized._id
@@ -120,7 +96,7 @@ const PaymentDetails = () => {
         if (courseid) {
           const subjectDataById = await getSubjectById(courseid);
           const subjectData = await getSubjectData();
-
+          // debugger;
           setAllSubject(subjectData);
           if (subjectDataById && Array.isArray(subjectDataById.subjects)) {
             const normalizedSubjects = subjectDataById.subjects.map(
@@ -131,10 +107,12 @@ const PaymentDetails = () => {
                 maxAmount: subject.maxAmount,
               })
             );
+            console.log("normalizedSubjects", normalizedSubjects);
             const result = checkSubjectsForClass(
               normalizedSubjects,
               subjectData
             );
+            console.log("result class for the new subject", result);
             setShowClass(result);
             if (result) {
               const matchingStandards = subjectData.filter((subject) =>
@@ -142,6 +120,7 @@ const PaymentDetails = () => {
                   formValues.standards.includes(standardId)
                 )
               );
+              console.log();
               setSubjects(matchingStandards);
             } else {
               setSubjects(normalizedSubjects);
@@ -171,12 +150,14 @@ const PaymentDetails = () => {
               value: course.courseId,
             }))
           );
+
           setClasses(
             classData.map((classItem) => ({
               name: classItem.name,
               id: classItem._id,
             }))
           );
+
           setBoards(
             boardData.boards.map((board, index) => ({
               boardName: board.boardName || `Unnamed Course ${index}`,
@@ -192,6 +173,7 @@ const PaymentDetails = () => {
   }, [courseid, formValues.standards]);
 
   const handleYearChange = (data) => {
+    // setProductCourseIds([]);
     setIntervalData(data);
   };
 
@@ -218,7 +200,7 @@ const PaymentDetails = () => {
       if (name === "productIds") {
         const selectedIds = value;
 
-        calculateTotalAmount(selectedIds);
+        // calculateTotalAmount(selectedIds);
         return {
           ...prev,
           [name]: selectedIds,
@@ -265,28 +247,23 @@ const PaymentDetails = () => {
             plan.interval === intervalidss &&
             plan.planType === "adminPanel"
         );
+        // debugger;
+        console.log(
+          "yearlyPlansyearlyPlansyearlyPlansyearlyPlans",
+          yearlyPlans
+        );
+        setAmounts({
+          maxAmount: yearlyPlans[0]?.maxAmount,
+          minAmount: yearlyPlans[0]?.minAmount,
+        });
+
         const productIdsArray = yearlyPlans[0]?.productIds || [];
-        // console.log("prodictiddddddddddddddddsddfggfdfdfdffddf ", yearlyPlans);
+        console.log(
+          "prodictiddddddddddddddddsddfggfdfdfdffddf ",
+          productIdsArray
+        );
 
         setProductCourseIds(productIdsArray);
-        if (yearlyPlans.length > 0 && periodPlan === "yearly") {
-          const maxAmount = Math.max(
-            ...yearlyPlans.map((plan) => plan.maxAmount || 0)
-          );
-          const minAmount = Math.min(
-            ...yearlyPlans.map((plan) => plan.minAmount || 0)
-          );
-          setTotalAmount({
-            min: minAmount + subjecTotalMin,
-            max: maxAmount + subjecTotalMax,
-          });
-          setMinAmountPlan(minAmount);
-          setMaxAmountPlan(maxAmount);
-        } else {
-          setTotalAmount({ min: subjecTotalMin, max: subjecTotalMax });
-          setMinAmountPlan(0);
-          setMaxAmountPlan(0);
-        }
       } catch (error) {
         console.error("Error fetching plans:", error);
         setTotalAmount({ min: 0, max: 0 });
@@ -302,13 +279,14 @@ const PaymentDetails = () => {
       setMinAmountPlan,
       setMaxAmountPlan,
       getPlansByCourseId,
+      intervalData,
     ]
   );
   useEffect(() => {
     if (courseid && periodPlan && intervalData) {
       fetchPlans(courseid, intervalData);
     }
-  }, [fetchPlans, courseid, periodPlan, intervalData]);
+  }, [fetchPlans]);
 
   const handleNext = async () => {
     setShowModal(true);
@@ -319,19 +297,65 @@ const PaymentDetails = () => {
   };
 
   const computeAllSubjects = useCallback(() => {
-    if (formValues.productIds.length === 0) {
-      const fixPlansubids = subjects.map((subject) => subject._id);
+    // console.log("productCourseIds.length", productCourseIds);
+    // console.log("allsubject", allSubject);
+    if (formValues.productIds.length === 0 && productCourseIds.length > 0) {
+      console.log("formValues.productIds.length");
+      // debugger;
+      // const fixPlansubids = allSubject.map((subject) => subject._id===productCourseIds);
       const skillSubjectIds = productIdsSkill.map((subject) => subject._id);
-      const allSubjects = fixPlansubids.concat(skillSubjectIds);
+      const allSubjects = productCourseIds.concat(skillSubjectIds);
+      console.log("allSubjects", allSubjects);
+      const filteredSubjects = allSubject.filter((subject) =>
+        skillSubjectIds.includes(subject._id)
+      );
+
+      const totalAmounts = filteredSubjects.reduce(
+        (totals, subject) => {
+          totals.minAmount += subject.minAmount || 0;
+          totals.maxAmount += subject.maxAmount || 0;
+          return totals;
+        },
+        { minAmount: 0, maxAmount: 0 }
+      );
+
+      setTotalAmount({
+        min: totalAmounts.minAmount + amounts.minAmount,
+        max: totalAmounts.maxAmount + amounts.maxAmount,
+      });
+
       setAllSubjects(allSubjects);
       return allSubjects;
     } else {
+      // console.log("this is best practices");
       const skillSubjectIds = productIdsSkill.map((subject) => subject._id);
       const allSubjects = formValues.productIds.concat(skillSubjectIds);
+      const filteredSubjects = allSubject.filter((subject) =>
+        allSubjects.includes(subject._id)
+      );
+      const totalAmounts = filteredSubjects.reduce(
+        (totals, subject) => {
+          totals.minAmount += subject.minAmount || 0;
+          totals.maxAmount += subject.maxAmount || 0;
+          return totals;
+        },
+        { minAmount: 0, maxAmount: 0 }
+      );
+      setTotalAmount({
+        min: totalAmounts.minAmount,
+        max: totalAmounts.maxAmount,
+      });
+
       setAllSubjects(allSubjects);
       return allSubjects;
     }
-  }, [formValues.productIds, subjects, productIdsSkill, setAllSubjects]);
+  }, [
+    formValues.productIds,
+    subjects,
+    productIdsSkill,
+    setAllSubjects,
+    productCourseIds,
+  ]);
 
   useEffect(() => {
     computeAllSubjects();
@@ -345,7 +369,7 @@ const PaymentDetails = () => {
       const formattedExpiryDate = expiryDate.toISOString();
 
       const allsubject = computeAllSubjects();
-
+      console.log("allsubject allsuvject", allSubject);
       const requestData = {
         amount: Number(price),
         period: formValues.period,
@@ -368,10 +392,13 @@ const PaymentDetails = () => {
       if (rawResponse.ok) {
         const { _id } = rawResponse.data;
         const requestMap = {
-          courseType: formValues.courseType,
           enrollmentId,
           plan: _id,
         };
+        // const requestMap = {
+        //   enrollmentId: "675d2d15e634ac2056eea723", // Correctly name the key
+        //   plan: "plan_PW7clIAo5hX52a",
+        // };
         await mapPlanEnrollment(requestMap);
         navigate("/payment-status", { state: { enrollmentId, mobile } });
       } else {
@@ -394,7 +421,7 @@ const PaymentDetails = () => {
       const updatedProductIds = prevValues.productIds.filter(
         (id) => id !== subjectId
       );
-      calculateTotalAmount(updatedProductIds);
+      // calculateTotalAmount(updatedProductIds);
 
       return {
         ...prevValues,
@@ -539,39 +566,7 @@ const PaymentDetails = () => {
 
         <div className="coupon-finalprice-section">
           <div className="form-control">
-            <label>Coupon</label>
-            <Input
-              value={formValues.coupon}
-              name="coupon"
-              onChange={handleChange}
-              placeholder="Enter Coupon Code"
-              rootStyle={{
-                borderRadius: "8px",
-                width: "13vw",
-              }}
-              inputStyle={{
-                height: "18px",
-                color: "#64748B",
-              }}
-            />
-            <button
-              className="next-button"
-              style={{
-                color: "#FFFFFF",
-                background: "#8E198F",
-                padding: "9px 12px",
-                cursor: "pointer",
-              }}
-              onClick={() => {
-                const discountedPrice = totalAmount.max - couponValue;
-                setFormValues((prev) => ({
-                  ...prev,
-                  finalPrice: discountedPrice > 0 ? discountedPrice : 0,
-                }));
-              }}
-            >
-              Apply
-            </button>
+            <Coupon orderAmount={totalAmount.min} />
           </div>
 
           <div className="coupon-finalprice-section-box">

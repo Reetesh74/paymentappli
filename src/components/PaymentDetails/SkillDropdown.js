@@ -1,19 +1,29 @@
 import React, { useState, useEffect } from "react";
-import { getSubjectById } from "../../utils/api";
+import { getSubjectById, getCourseData } from "../../utils/api";
 import CustomSelect from "../app/CustomSelect";
 
-const SkillDropdown = ({ disabled,onProductIdsChange }) => {
+const SkillDropdown = ({ disabled, onProductIdsChange }) => {
   const [subjects, setSubjects] = useState([]);
   const [formValues, setFormValues] = useState({ productIds: [] });
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
+  const getSkillId = (data, courseName) => {
+    const course = data.courses.find(
+      (course) => course.courseName === courseName
+    );
+    return course ? course.courseId : null;
+  };
   useEffect(() => {
     const fetchSubjects = async () => {
       try {
-        const subjectDataById = await getSubjectById(
-          "6766af828a3e986b1f1fa821"
-        );
+        // debugger
+        const response = await getCourseData();
+        console.log("response", response);
 
+        const skillId = getSkillId(response, "Skill");
+        console.log("Fetching course data...", skillId);
+
+        const subjectDataById = await getSubjectById(skillId);
+        console.log("subjectDataById", subjectDataById);
         if (subjectDataById && Array.isArray(subjectDataById.subjects)) {
           const normalizedSubjects = subjectDataById.subjects.map(
             (subject) => ({
@@ -63,7 +73,6 @@ const SkillDropdown = ({ disabled,onProductIdsChange }) => {
       <CustomSelect
         label="Skill"
         name="productIds"
-        
         value={formValues.productIds.map((subject) => subject._id)} // Send only the ids to the select component
         options={subjects.map((subject, index) => ({
           value: subject._id || `subject-${index}`,

@@ -7,7 +7,7 @@ const SelectedSubjects = ({
   period,
 }) => {
   // console.log("productIds ============ ", productIds);
-  // console.log("periods", period);
+  // // console.log("periods", period);
   // console.log("subject======", subjects);
   // console.log("productIds.length ===", productIds.length);
 

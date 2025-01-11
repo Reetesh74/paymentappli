@@ -19,7 +19,7 @@ const PaymentDetails = () => {
     studentName: "",
     studentMobile: "",
     paymentMode: "",
-    amount: "",
+    amount: 0,
     email: "",
     currency: "INR",
     course_Id: "667b0abe04c71805e5441a3b",
@@ -70,7 +70,7 @@ const PaymentDetails = () => {
         email: formData.email,
         course: formData.course_Id,
         createdBy: formData.createdBy,
-        amount: formData.amount,
+        amount: Number(formData.amount),
         paymentMode: formData.paymentMode,
         currency: "INR",
       };
