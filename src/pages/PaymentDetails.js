@@ -10,7 +10,9 @@ import ModalContent from "../components/PaymentDetails/ModalContent";
 import CustomSelect from "../components/app/CustomSelect";
 import Input from "../components/app/Input";
 import SkillDropdown from "../components/PaymentDetails/SkillDropdown";
+import BatchDropdown from "../components/PaymentDetails/BatchDropdown";
 import SelectedSubjects from "../components/PaymentDetails/SelectedSubjects";
+import FixPlan from "../components/PaymentDetails/FixPlan";
 import Coupon from "../components/PaymentDetails/Coupon";
 import {
   getClassData,
@@ -21,6 +23,7 @@ import {
   getPlansByCourseId,
   getSubjectById,
   getSubjectData,
+  getAdminPlansByCourseId,
 } from "../utils/api";
 
 const PaymentDetails = () => {
@@ -49,6 +52,9 @@ const PaymentDetails = () => {
   const [productCourseIds, setProductCourseIds] = useState([]);
   const [allSubject, setAllSubject] = useState([]);
   const [amounts, setAmounts] = useState({ minAmount: 0, maxAmount: 0 });
+  const [adminData, setAdminData] = useState([]);
+  const [fixPlan, setFixPlan] = useState([]);
+  const [selectedSubjects, setSelectedSubjects] = useState([]);
   const [formValues, setFormValues] = useState({
     amount: 0,
     name: "",
@@ -65,6 +71,20 @@ const PaymentDetails = () => {
     expiryDate: "",
     planType: "salesPanel",
   });
+  const handleSubjectSelection = (subjectIds) => {
+    console.log("Selected Subject IDs:", subjectIds);
+    setSelectedSubjects(subjectIds);
+  };
+
+  const handleAmount = (amountMaxMin) => {
+    console.log("maxamount", amountMaxMin.maxAmount);
+    console.log("minAmount", amountMaxMin.minAmount);
+    setTotalAmount({
+      max: amountMaxMin.maxAmount,
+      min: amountMaxMin.minAmount,
+    });
+    console.log("max ans min amount ", amountMaxMin);
+  };
 
   const handleProductIdsChange = (newProductIds) => {
     setProductIdsSkill(newProductIds);
@@ -94,6 +114,8 @@ const PaymentDetails = () => {
     const fetchData = async () => {
       try {
         if (courseid) {
+          const adminplans = await getAdminPlansByCourseId();
+          setAdminData(adminplans);
           const subjectDataById = await getSubjectById(courseid);
           const subjectData = await getSubjectData();
           // debugger;
@@ -107,12 +129,12 @@ const PaymentDetails = () => {
                 maxAmount: subject.maxAmount,
               })
             );
-            console.log("normalizedSubjects", normalizedSubjects);
+            // console.log("normalizedSubjects", normalizedSubjects);
             const result = checkSubjectsForClass(
               normalizedSubjects,
               subjectData
             );
-            console.log("result class for the new subject", result);
+            // console.log("result class for the new subject", result);
             setShowClass(result);
             if (result) {
               const matchingStandards = subjectData.filter((subject) =>
@@ -235,58 +257,121 @@ const PaymentDetails = () => {
     }
   };
 
-  const fetchPlans = useCallback(
-    async (courseId, intervalidss) => {
-      try {
-        // console.log("pladetails subject", subjects);
-        const plans = await getPlansByCourseId(courseId);
-        console.log("plans yearly: ", plans);
-        const yearlyPlans = plans.filter(
-          (plan) =>
-            plan.period === "yearly" &&
-            plan.interval === intervalidss &&
-            plan.planType === "adminPanel"
-        );
-        // debugger;
-        console.log(
-          "yearlyPlansyearlyPlansyearlyPlansyearlyPlans",
-          yearlyPlans
-        );
-        setAmounts({
-          maxAmount: yearlyPlans[0]?.maxAmount,
-          minAmount: yearlyPlans[0]?.minAmount,
-        });
+  // const fetchPlans = useCallback(
+  //   async (courseId, intervalidss) => {
+  //     try {
+  //       const plans = await getPlansByCourseId(courseId);
+  //       console.log("plans yearly:== ", plans);
+  //       const yearlyPlans = plans.filter(
+  //         (plan) =>
+  //           plan.period === "yearly" &&
+  //           plan.interval === intervalidss &&
+  //           plan.planType === "adminPanel"
+  //       );
 
-        const productIdsArray = yearlyPlans[0]?.productIds || [];
-        console.log(
-          "prodictiddddddddddddddddsddfggfdfdfdffddf ",
-          productIdsArray
-        );
+  //       setAmounts({
+  //         maxAmount: yearlyPlans[0]?.maxAmount,
+  //         minAmount: yearlyPlans[0]?.minAmount,
+  //       });
 
-        setProductCourseIds(productIdsArray);
-      } catch (error) {
-        console.error("Error fetching plans:", error);
-        setTotalAmount({ min: 0, max: 0 });
-      }
-    },
-    [
-      subjects,
-      periodPlan,
-      subjecTotalMin,
-      subjecTotalMax,
-      setProductCourseIds,
-      setTotalAmount,
-      setMinAmountPlan,
-      setMaxAmountPlan,
-      getPlansByCourseId,
-      intervalData,
-    ]
-  );
+  //       const productIdsArray = yearlyPlans[0]?.productIds || [];
+
+  //       setProductCourseIds(productIdsArray);
+  //     } catch (error) {
+  //       console.error("Error fetching plans:", error);
+  //       setTotalAmount({ min: 0, max: 0 });
+  //     }
+  //   },
+  //   [
+  //     subjects,
+  //     periodPlan,
+  //     subjecTotalMin,
+  //     subjecTotalMax,
+  //     setProductCourseIds,
+  //     setTotalAmount,
+  //     setMinAmountPlan,
+  //     setMaxAmountPlan,
+  //     getPlansByCourseId,
+  //     intervalData,
+  //   ]
+  // );
+  // useEffect(() => {
+  //   if (courseid && periodPlan && intervalData) {
+  //     fetchPlans(courseid, intervalData);
+  //   }
+  // }, [fetchPlans]);
+
   useEffect(() => {
-    if (courseid && periodPlan && intervalData) {
-      fetchPlans(courseid, intervalData);
+    try {
+      console.log("adminplans", adminData);
+
+      const filteredPlans = adminData.filter((plan) => {
+        const matchesCourseType = plan.courseType === formValues.courseType; // Check courseType match
+        console.log(
+          "Filtered by courseType (inside filter):",
+          matchesCourseType
+        );
+
+        return matchesCourseType;
+      });
+
+      console.log("Filtered Admin Plans (by courseType):", filteredPlans);
+
+      let finalFilteredPlans = filteredPlans;
+
+      if (formValues.period) {
+        finalFilteredPlans = finalFilteredPlans.filter(
+          (plan) => plan.period === formValues.period
+        );
+        console.log("Filtered by period:", finalFilteredPlans);
+      }
+
+      if (formValues.period && intervalData) {
+        finalFilteredPlans = finalFilteredPlans.filter(
+          (plan) => plan.interval === intervalData
+        );
+        console.log("Filtered by intervalData:", finalFilteredPlans);
+      }
+      console.log(
+        "formValues.standasssssssssssssssssssrds",
+        formValues.standards
+      );
+
+      if (
+        formValues.standards.length > 0 &&
+        Array.isArray(formValues.standards)
+      ) {
+        finalFilteredPlans = finalFilteredPlans.filter((plan) =>
+          plan.standards?.some((standard) =>
+            formValues.standards.includes(standard)
+          )
+        );
+        console.log("Filtered by standards:", finalFilteredPlans);
+      }
+
+      if (formValues.board) {
+        finalFilteredPlans = finalFilteredPlans.filter(
+          (plan) => plan.board === formValues.board
+        );
+        console.log("Filtered by intervalData:", finalFilteredPlans);
+      }
+
+      setFixPlan(finalFilteredPlans);
+      console.log(
+        "Fffffffffffffffffinal Filtered Admin Plans:",
+        finalFilteredPlans
+      );
+    } catch (error) {
+      console.error("Error fetching admin plans:", error);
     }
-  }, [fetchPlans]);
+  }, [
+    adminData,
+    intervalData,
+    formValues.courseType,
+    formValues.standards,
+    formValues.period,
+    formValues.board,
+  ]);
 
   const handleNext = async () => {
     setShowModal(true);
@@ -297,37 +382,15 @@ const PaymentDetails = () => {
   };
 
   const computeAllSubjects = useCallback(() => {
-    // console.log("productCourseIds.length", productCourseIds);
-    // console.log("allsubject", allSubject);
-    if (formValues.productIds.length === 0 && productCourseIds.length > 0) {
-      console.log("formValues.productIds.length");
-      // debugger;
-      // const fixPlansubids = allSubject.map((subject) => subject._id===productCourseIds);
-      const skillSubjectIds = productIdsSkill.map((subject) => subject._id);
-      const allSubjects = productCourseIds.concat(skillSubjectIds);
-      console.log("allSubjects", allSubjects);
-      const filteredSubjects = allSubject.filter((subject) =>
-        skillSubjectIds.includes(subject._id)
-      );
-
-      const totalAmounts = filteredSubjects.reduce(
-        (totals, subject) => {
-          totals.minAmount += subject.minAmount || 0;
-          totals.maxAmount += subject.maxAmount || 0;
-          return totals;
-        },
-        { minAmount: 0, maxAmount: 0 }
-      );
-
-      setTotalAmount({
-        min: totalAmounts.minAmount + amounts.minAmount,
-        max: totalAmounts.maxAmount + amounts.maxAmount,
-      });
-
-      setAllSubjects(allSubjects);
-      return allSubjects;
-    } else {
+    console.log("productIdsSkillproductIdsSkill", productIdsSkill);
+    console.log(
+      "formValues.productIdsformValues.productIds",
+      formValues.productIds
+    );
+    if (productIdsSkill.length > 0 || formValues.productIds.length > 0) {
       // console.log("this is best practices");
+      // debugger;
+      setSelectedSubjects([]);
       const skillSubjectIds = productIdsSkill.map((subject) => subject._id);
       const allSubjects = formValues.productIds.concat(skillSubjectIds);
       const filteredSubjects = allSubject.filter((subject) =>
@@ -345,9 +408,10 @@ const PaymentDetails = () => {
         min: totalAmounts.minAmount,
         max: totalAmounts.maxAmount,
       });
-
       setAllSubjects(allSubjects);
       return allSubjects;
+    } else {
+      return selectedSubjects;
     }
   }, [
     formValues.productIds,
@@ -355,6 +419,7 @@ const PaymentDetails = () => {
     productIdsSkill,
     setAllSubjects,
     productCourseIds,
+    selectedSubjects,
   ]);
 
   useEffect(() => {
@@ -457,6 +522,15 @@ const PaymentDetails = () => {
                 return selectedOption ? selectedOption.label : "Select Course";
               }}
             />
+            {!(
+              productIdsSkill.length > 0 || formValues.productIds.length > 0
+            ) && (
+              <FixPlan
+                fixPlan={fixPlan}
+                onSubjectSelect={handleSubjectSelection}
+                onAmountsChange={handleAmount}
+              />
+            )}
             <SelectedSubjects
               subjects={subjects.length > 0 ? subjects : allSubject}
               productIds={
@@ -471,6 +545,9 @@ const PaymentDetails = () => {
         </div>
 
         <div className="row1">
+          <div className="form-control">
+            <BatchDropdown />
+          </div>
           <div className="form-control">
             <CustomSelect
               label="Tenure"

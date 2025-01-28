@@ -29,11 +29,10 @@ const SelectedSubjects = ({
                 return subject ? (
                   <li key={subject._id} className="subject-item">
                     {subject.name}
-                    {!isYearlyAndEmpty && (
-                      <button onClick={() => onRemoveSubject(subject._id)}>
-                        <img src="/icons/cross-icon.svg" alt="Remove" />
-                      </button>
-                    )}
+
+                    <button onClick={() => onRemoveSubject(subject._id)}>
+                      <img src="/icons/cross-icon.svg" alt="Remove" />
+                    </button>
                   </li>
                 ) : null;
               })}

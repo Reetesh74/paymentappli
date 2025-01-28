@@ -17,13 +17,13 @@ const SkillDropdown = ({ disabled, onProductIdsChange }) => {
       try {
         // debugger
         const response = await getCourseData();
-        console.log("response", response);
+        // console.log("response", response);
 
         const skillId = getSkillId(response, "Skill");
-        console.log("Fetching course data...", skillId);
+        // console.log("Fetching course data...", skillId);
 
         const subjectDataById = await getSubjectById(skillId);
-        console.log("subjectDataById", subjectDataById);
+        // console.log("subjectDataById", subjectDataById);
         if (subjectDataById && Array.isArray(subjectDataById.subjects)) {
           const normalizedSubjects = subjectDataById.subjects.map(
             (subject) => ({

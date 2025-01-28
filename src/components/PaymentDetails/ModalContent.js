@@ -27,7 +27,7 @@ const ModalContent = ({
       .join(", ");
   };
 
-  console.log("allSubjects== ", allSubjects);
+  // console.log("allSubjects== ", allSubjects);
   // console.log("course name this is the best ", courses);
   const getCourseName = (id) => {
     console.log("ids ", id);

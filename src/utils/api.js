@@ -175,6 +175,14 @@ export const getPlansByCourseId = async (courseId) => {
   return handleResponse(response, "Failed to fetch plan data");
 };
 
+// export const getAdminPlansByCourseId = async (courseId) => {
+//   console.log("courseideeeeeeeeeeeeee", courseId);
+//   const endpoint = `/plan/read/get-admin-all-plans?planType=adminPanel`;
+//   const response = await fetchWithAuth(endpoint);
+//   console.log("rrrrrrrrrrrrrr",response)
+//   return handleResponse(response, "Failed to fetch plan data");
+// };
+
 export const getSubjectById = async (courseId) => {
   const endpoint = `/course/read/get?courseId=${courseId}`;
   const response = await fetchWithAuth(endpoint);
@@ -204,7 +212,7 @@ const fetchWithAuthLocal = async (endpoint, options = {}) => {
   };
 
   console.log("Making request to:", `${BASE_URL_LOCAL}${endpoint}`);
-  console.log("With headers:", headers);
+  // console.log("With headers:", headers);
 
   try {
     const response = await fetch(`${BASE_URL_LOCAL}${endpoint}`, {
@@ -246,4 +254,20 @@ export const applyCoupon = async (couponDetails) => {
     body: JSON.stringify(couponDetails),
   });
   return response;
+};
+
+
+export const getAdminPlansByCourseId = async (courseId) => {
+  console.log("courseideeeeeeeeeeeeee", courseId);
+  const endpoint = `/plan/read/get-admin-all-plans?planType=adminPanel`;
+  const response = await fetchWithAuthLocal(endpoint);
+  console.log("rrrrrrrrrrrrrr",response)
+  return handleResponseLocal(response, "Failed to fetch plan data");
+};
+
+
+export const getAllBatch = async () => {
+  const endpoint = `/batchmark/read/get-all-batch`;
+  const response = await fetchWithAuthLocal(endpoint);
+  return handleResponseLocal(response, "Failed to fetch Subscription data");
 };
